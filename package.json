@@ -1,0 +1,28 @@
+{
+  "name": "cs470_project02",
+  "version": "1.0.0",
+  "description": "tree data structure visualizer",
+  "main": "index.js",
+  "scripts": {
+    "start": "npm run open",
+    "open": "concurrently \"http-server -a localhost -p 8000\" \"open http://localhost:8000/index.html\"",
+    "live": "live-server"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/themnsavage/CS470_project02.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/themnsavage/CS470_project02/issues"
+  },
+  "homepage": "https://github.com/themnsavage/CS470_project02#readme",
+  "devDependencies": {
+    "concurrently": "^7.6.0",
+    "http-server": "^14.1.1"
+  },
+  "dependencies": {
+    "ci": "^2.2.0"
+  }
+}
