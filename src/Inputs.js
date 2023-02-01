@@ -1,17 +1,14 @@
-// MARK: Setting Constants
-
+import { useState } from "react";
 // Visual constants
-const top_margin = 20;
-const left_margin = 20;
+const top_margin = 250;
+const left_margin = 600;
 const size_elements = 25;
 const space_elements = 8;
 const vertical_space_elements = 40;
-const speed = 2000;
 
 // Range
 const max_value = 127;
 const min_vlaue = 0;
-const num_elements = 100; //n
 
 // MARK: Defining Enum
 
@@ -355,39 +352,63 @@ class Element {
     }
 }
 
-// MARK: Helper Functions
+const Inputs = () => {
+    const [insertInput, setInsert] = useState('');
+    const [deleteInput, setDelete] = useState('');
+    const [findInput, setFind] = useState('');
+    const [output, setOutput] = useState('None');
+    const [operation, setOperation] = useState('No operation done');
+    const [RBtreeObject, setRBtreeObject] = useState(null);
 
-// Simple sleep function for given ms
-async function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-async function run() {
-    // let binaryValues = [64, 32, 96, 16, 48, 80, 112, 8, 24, 40, 56, 72, 88, 104, 120, 4, 12, 20, 28, 36, 44, 52, 60, 68, 76, 84, 92, 100, 108, 116, 124, 2, 6, 10, 14, 18, 22, 26, 30, 34, 38, 42, 46, 50, 54, 58, 62, 66, 70, 74, 78, 82, 86, 90, 94, 98, 102, 106, 110, 114, 118, 122, 126, 1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31, 33, 35, 37, 39, 41, 43, 45, 47, 49, 51];
-
-    // //let binaryValues = [64, 32];
-    // let firstValue = binaryValues[0];
-
-    // let binary = new RBTree(firstValue, 1000, top_margin);
-
-    // for (let i = 1; i < binaryValues.length; ++i) {
-    //     await sleep(speed);
-    //     let value = binaryValues[i];
-    //     binary.addNode(value);
-    // }
-
-    let firstValue = Math.floor(Math.random() * (max_value - min_vlaue)) + min_vlaue;
-
-    let binary = new RBTree(firstValue, 1000, top_margin);
-
-    for (let i = 1; i < num_elements; ++i) {
-        await sleep(speed);
-        let value = Math.floor(Math.random() * (max_value - min_vlaue)) + min_vlaue;
-        binary.addNode(value);
+    const handleChange = (event) => {
+        var id = event.target.id
+        var value = event.target.value
+        
+        if(id === "insert"){
+            setInsert(value)
+        }
+        if(id === "delete"){
+            setDelete(value)
+        }
+        if(id === "find"){
+            setFind(value)
+        }
     }
+
+    const handleClick = (event) => {
+        var id = event.target.id
+
+        if(id === "insertClick"){
+            setOutput(insertInput)
+            setOperation('Inserting')
+            if(RBtreeObject === null){
+                setRBtreeObject(new RBTree(insertInput, left_margin, top_margin))
+            }
+            else{
+                RBtreeObject.addNode(insertInput)
+            }
+        }
+        if(id === "deleteClick"){
+            setOutput(deleteInput)
+            setOperation('Deleting')
+        }
+        if(id === "findClick"){
+            setOutput(findInput)
+            setOperation('Finding')
+        }
+    }
+
+    return (
+        <div>
+            <input type ="text" id="insert" placeholder="Enter a value to be added" onChange={handleChange}/>
+            <button id="insertClick" onClick={handleClick}> Insert </button>
+            <input type ="text" id="delete" placeholder="Enter a value to be added" onChange={handleChange}/>
+            <button id="deleteClick" onClick={handleClick}> Delete </button>
+            <input type ="text" id="find" placeholder="Enter a value to be added" onChange={handleChange}/>
+            <button id="findClick" onClick={handleClick}> Find </button>
+            <p>{operation}: {output}</p>
+        </div>
+    );
 }
 
-// MARK: Main Program 
-
-// run program
-run();
+export default Inputs
