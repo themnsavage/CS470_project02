@@ -336,8 +336,8 @@ class Element {
 
     // animate to new position
     animate() {
-        this.element.style.left = this.xpos;
-        this.element.style.top = this.ypos;
+        this.element.style.left = this.xpos + "px";
+        this.element.style.top = this.ypos + "px";
     }
 
     deleteLine() {
