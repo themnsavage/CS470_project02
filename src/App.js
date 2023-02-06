@@ -3,17 +3,20 @@ import { useEffect, useState, useRef } from "react";
 import Inputs from './Inputs';
 import BinaryTree from './BinaryTree'
 import BTree from './BTree';
+import RBTree from './RBTree';
 
 function App() {
   const [insertInput, setInsert] = useState('');
 
   const binaryTreeRef = useRef();
   const bTreeRef = useRef();
+  const rbTreeRef = useRef();
 
   useEffect(() => {
     if(insertInput != ''){
       binaryTreeRef.current.insert(insertInput);
       bTreeRef.current.insert(insertInput);
+      rbTreeRef.current.insert(insertInput);
     }
     setInsert('');
   },[insertInput]);
@@ -29,6 +32,8 @@ function App() {
       <BinaryTree ref={binaryTreeRef}/>
       <h2>B-Tree:</h2>
       <BTree ref={bTreeRef}/>
+      <h2>RB-Tree:</h2>
+      <RBTree ref={rbTreeRef}/>
     </div>
   );
 }
