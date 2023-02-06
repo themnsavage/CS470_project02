@@ -4,7 +4,7 @@
 - Rachel Qualls
 - Andrew Helms
 - Elijah Hilty
-- Josh Von
+- Josh Vondracek
 - Ryan Moddesette
 - Noah Savage
 
