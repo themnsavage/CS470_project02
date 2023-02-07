@@ -1,14 +1,27 @@
 import { useState, forwardRef, useImperativeHandle } from "react";
 import Tree from 'react-d3-tree';
 
-const Color = {
-    red : 0,
-    black : 1
-}
-
 const RBTree = forwardRef((props, ref) => {
+    const nodeSize = { x: 60, y: 60 };
+    const foreignObjectProps = { width: nodeSize.x, height: nodeSize.y, x: -25, y: -50 };
     const nullNode = 'NULL';
     const [RBTree, setRBTree] = useState([{name:nullNode}]);
+
+    const renderForeignObjectNode = ({
+        nodeDatum,
+        toggleNode,
+        foreignObjectProps
+      }) => (
+        <g>
+          {/* <circle r={15}> fill={"red"}</circle> */}
+          {/* `foreignObject` requires width & height to be explicitly set. */}
+          <foreignObject {...foreignObjectProps}>
+            <div style={{ borderStyle: "solid", borderWidth: "4px", borderColor: nodeDatum.color, backgroundColor: "white", borderRadius: "25px"}}>
+              <h3 style={{ textAlign: "center" }}>{nodeDatum.name}</h3>
+            </div>
+          </foreignObject>
+        </g>
+      );
 
     useImperativeHandle(ref, () => {
         return {insert: insertNode};
@@ -16,9 +29,9 @@ const RBTree = forwardRef((props, ref) => {
 
     const insertNode = (value) => {
         var tree = RBTree;
-        var newNode = {name: value, color: Color.red, parent: {name: nullNode}, children: [{name: nullNode},{name: nullNode}]};
+        var newNode = {name: value, color: "red", parent: {name: nullNode}, children: [{name: nullNode},{name: nullNode}]};
         if(tree[0].name === nullNode){
-            newNode.color = Color.black;
+            newNode.color = "black";
             tree[0] = newNode;
         }
         else{
@@ -60,11 +73,11 @@ const RBTree = forwardRef((props, ref) => {
 
     const rbInsertFixup = (tree, element) => {
         if (element.parent.name === nullNode) {
-            element.color = Color.black;
+            element.color = "black";
             return;
         }
 
-        if (element.parent.color === Color.black) {
+        if (element.parent.color === "black") {
             return;
         }
 
@@ -72,10 +85,10 @@ const RBTree = forwardRef((props, ref) => {
         let grandparent = getGrandparent(element);
         let uncle = getUncle(element);
 
-        if (uncle.name !== nullNode && uncle.color === Color.red) {
-            uncle.color = Color.black;
-            parent.color = Color.black;
-            grandparent.color = Color.red;
+        if (uncle.name !== nullNode && uncle.color === "red") {
+            uncle.color = "black";
+            parent.color = "black";
+            grandparent.color = "red";
             rbInsertFixup(tree, grandparent);
             return;
         }
@@ -94,8 +107,8 @@ const RBTree = forwardRef((props, ref) => {
             parent = element.parent;
         }
 
-        parent.color = Color.black;
-        grandparent.color = Color.red;
+        parent.color = "black";
+        grandparent.color = "red";
 
         if (element === parent.children[0]) {
             rightRotate(tree, grandparent);
@@ -171,6 +184,9 @@ const RBTree = forwardRef((props, ref) => {
         collapsible={false}
         depthFactor={60}
         translate ={{x: 450, y: 10}}
+        renderCustomNodeElement={(rd3tProps) =>
+            renderForeignObjectNode({ ...rd3tProps, foreignObjectProps })
+          }
         />
     );
 });
