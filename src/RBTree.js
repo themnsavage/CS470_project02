@@ -2,11 +2,14 @@ import { useState, forwardRef, useImperativeHandle } from "react";
 import Tree from 'react-d3-tree';
 
 const RBTree = forwardRef((props, ref) => {
-    const nodeSize = { x: 60, y: 60 };
-    const foreignObjectProps = { width: nodeSize.x, height: nodeSize.y, x: -25, y: -50 };
     const nullNode = 'NULL';
     const [RBTree, setRBTree] = useState([{name:nullNode}]);
+    const [animationSpeed, setAnimationSpeed] = useState(1500);
 
+    const nodeSize = { x: 60, y: 60 };
+    const foreignObjectProps = { width: nodeSize.x, height: nodeSize.y, x: -25, y: -50 };
+
+    // MARK: Custom node
     const renderForeignObjectNode = ({
         nodeDatum,
         toggleNode,
@@ -16,7 +19,7 @@ const RBTree = forwardRef((props, ref) => {
           {/* <circle r={15}> fill={"red"}</circle> */}
           {/* `foreignObject` requires width & height to be explicitly set. */}
           <foreignObject {...foreignObjectProps}>
-            <div style={{ borderStyle: "solid", borderWidth: "4px", borderColor: nodeDatum.color, backgroundColor: "white", borderRadius: "25px"}}>
+            <div style={{ borderStyle: "solid", borderWidth: "4px", borderColor: nodeDatum.color, backgroundColor: nodeDatum.backgroundColor, borderRadius: "25px"}}>
               <h3 style={{ textAlign: "center" }}>{nodeDatum.name}</h3>
             </div>
           </foreignObject>
@@ -27,16 +30,32 @@ const RBTree = forwardRef((props, ref) => {
         return {insert: insertNode};
     });
 
-    const insertNode = (value) => {
+    // MARK: Animations
+
+    const sleep =  async () => {
+        return new Promise(resolve => setTimeout(resolve, animationSpeed));
+    }
+
+    const animateNodeColor = async (tree, node, color='green') => {
+        node.backgroundColor = color;
+        setRBTree([...tree]);
+        await sleep();
+        node.backgroundColor = 'white';
+        setRBTree([...tree]);
+    }
+
+    const insertNode = async (value) => {
         var tree = RBTree;
-        var newNode = {name: value, color: "red", parent: {name: nullNode}, children: [{name: nullNode},{name: nullNode}]};
+        var newNode = {name: value, color: "red", parent: {name: nullNode}, children: [{name: nullNode, backgroundColor: "white"},{name: nullNode, backgroundColor: "white"}], backgroundColor: "white"};
         if(tree[0].name === nullNode){
             newNode.color = "black";
             tree[0] = newNode;
+            await animateNodeColor(tree, tree[0], 'yellow');
         }
         else{
             var currentNode = tree[0];
             var prevNode = null;
+            await animateNodeColor(tree, currentNode, 'green');
             while(currentNode.name !== nullNode){
                 prevNode = currentNode;
                 if(parseInt(value) < parseInt(currentNode.name)){
@@ -45,24 +64,27 @@ const RBTree = forwardRef((props, ref) => {
                 else{
                     currentNode = currentNode.children[1]
                 }
+                await animateNodeColor(tree, currentNode, 'green');
             }
 
             if(parseInt(value) < parseInt(prevNode.name)){                
                 prevNode.children[0] = newNode;
                 newNode.parent = prevNode;
+                await animateNodeColor(tree, prevNode.children[0], 'yellow');
             }
             else{
                 prevNode.children[1] = newNode; 
                newNode.parent = prevNode;
+               await animateNodeColor(tree, prevNode.children[1], 'yellow');
             }
         }
-        printNode(tree[0]);
         setRBTree([...tree]);
         rbInsertFixup(tree, newNode);
         setRBTree([...tree]);
         printNode(tree[0]);
     }
 
+    // print tree (pass in head of tree tree[0])
     const printNode = (node) => {
         if (node.name !== nullNode) {
             console.log(node);
@@ -71,6 +93,7 @@ const RBTree = forwardRef((props, ref) => {
         }
     }
 
+    // MARK: helper functions for RB tree insert
     const rbInsertFixup = (tree, element) => {
         if (element.parent.name === nullNode) {
             element.color = "black";
@@ -92,8 +115,6 @@ const RBTree = forwardRef((props, ref) => {
             rbInsertFixup(tree, grandparent);
             return;
         }
-        console.log(parent.children[1])
-        console.log(grandparent)
 
         if (element.name === parent.children[1].name && parent.name === grandparent.children[0].name) {
             leftRotate(tree, parent);
@@ -120,7 +141,7 @@ const RBTree = forwardRef((props, ref) => {
 
     }
 
-    const leftRotate = (tree, element) => {
+    const leftRotate = async (tree, element) => {
         let temp = element.children[1];
         element.children[1] = temp.children[0];
         if (temp.children[0].name !== nullNode) {
@@ -138,7 +159,7 @@ const RBTree = forwardRef((props, ref) => {
         element.parent = temp;
     }
 
-    const rightRotate = (tree, element) => {
+    const rightRotate = async (tree, element) => {
         let temp = element.children[0];
         element.children[0] = temp.children[1];
         if (temp.children[1].name !== nullNode) {
