@@ -151,16 +151,20 @@ const BTree = forwardRef((props, ref) => {
         
         if(root.keys.length == (2*degree) - 1){
             var newRoot = createNode(false);
-            newRoot.children[0] = root;
+            newRoot.children.push(root);
             tree[0] = newRoot
-            await splitChildren(tree, newRoot, 1, root);
+            await splitChildren(tree, newRoot, 0, newRoot.children[0]);
+            console.log(`root #'s children: ${newRoot.children.length}`);
+            console.log(`root keys: ${newRoot.keys}`);
+            console(`root[1] keys: ${root.children[1].keys}`);
+            console(`root[0] keys: ${root.children[0].keys}`);
             await insertNonFull(tree, newRoot, newKey);
         }
         else{
-            await insertNonFull(tree, root, newKey);
+            await insertNonFull(tree, tree[0], newKey);
         }
 
-        updateNames(root);
+        updateNames(tree[0]);
         setBTree([...tree]);
     }
 
