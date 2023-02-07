@@ -2,8 +2,8 @@ import { useState, forwardRef, useImperativeHandle } from "react";
 import Tree from 'react-d3-tree';
 
 const BTree = forwardRef((props, ref) => {
-    const nodeSize = { x: 100, y: 100 };
-    const foreignObjectProps = { width: nodeSize.x, height: nodeSize.y, x: -25, y: -50 };
+    const nodeSize = { x: 90, y: 100 };
+    const foreignObjectProps = { width: nodeSize.x, height: nodeSize.y, x: -44, y: -40 };
 
     const [bTree, setBTree] = useState([{name:'', keys:[], leaf: true, children:[]}]);
     const [degree, setDegree] = useState(2)
@@ -12,7 +12,7 @@ const BTree = forwardRef((props, ref) => {
 
     useImperativeHandle(ref, () => {
         return {insert: insertNode};
-    });
+    })
 
     const renderForeignObjectNode = ({
         nodeDatum,
@@ -130,6 +130,12 @@ const BTree = forwardRef((props, ref) => {
         root.keys.splice(i,0,oldChild.keys[degree-1]);
         oldChild.keys.splice(degree-1,1);
         
+        animateNodeColor(tree, oldChild, 'purple');
+        animateNodeColor(tree, root, 'purple');
+        animateNodeColor(tree, newChild, 'purple');
+
+        await sleep();
+        
         await animateNodeColor(tree, oldChild, 'green');
         oldChild.name = createName(oldChild.keys);
         await animateNodeColor(tree, root, 'green');
@@ -167,7 +173,7 @@ const BTree = forwardRef((props, ref) => {
             width={400}
             zoom={0.5}
             collapsible={false}
-            depthFactor={60}
+            depthFactor={100}
             translate ={{x: 450, y: 10}}
             renderCustomNodeElement={(rd3tProps) =>
                 renderForeignObjectNode({ ...rd3tProps, foreignObjectProps })
