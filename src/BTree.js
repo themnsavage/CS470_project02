@@ -11,7 +11,10 @@ const BTree = forwardRef((props, ref) => {
     const [animationSpeed, setAnimationSpeed] = useState(1500);
 
     useImperativeHandle(ref, () => {
-        return {insert: insertNode};
+        return {
+            insert: insertNode,
+            find: findKey
+        };
     })
 
     const renderForeignObjectNode = ({
@@ -167,6 +170,33 @@ const BTree = forwardRef((props, ref) => {
 
         updateNames(tree[0]);
         setBTree([...tree]);
+    }
+
+    const btreeSearch = async (tree, node, key) => {
+        await animateNodeColor(tree, node, 'green');
+        let index = 0;
+        while(index < node.keys.length && key > node.keys[index]){
+            index++;
+        }
+        if(node.keys[index] == key){
+            await animateNodeColor(tree, node, 'blue');
+            return;
+        }
+
+        if(node.leaf){
+            await animateNodeColor(tree, node, 'red');
+        }    
+
+        btreeSearch(tree, node.children[index], key);
+    }
+
+    const findKey = async (key) => {
+        key = parseInt(key);
+        var tree = bTree;
+        
+        if(tree[0].name != ''){
+            await btreeSearch(tree, tree[0], key);
+        }
     }
 
     return (

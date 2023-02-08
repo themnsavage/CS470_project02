@@ -31,6 +31,7 @@ function App() {
   useEffect(() => {
     if(findInput != ''){
       console.log(`find input: ${findInput}`);
+      bTreeRef.current.find(findInput);
     }
     setFind('');
   },[findInput]);
