@@ -116,8 +116,8 @@ const BTree = forwardRef((props, ref) => {
         }
 
         if(!oldChild.leaf){ // if not a child leaf
-            for(let j = 0; j < degree; j++){ // oldChild children put in newChild 
-                let oldChildIndex = j+degree;
+            for(let j = 0; j < oldChild.children.length; j++){ // oldChild children put in newChild 
+                let oldChildIndex = j+(degree-1);
                 newChild.children.push(oldChild.children[oldChildIndex]);
                 oldChild.children.splice(oldChildIndex,1);
             }
