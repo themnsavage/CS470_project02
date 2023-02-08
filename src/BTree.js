@@ -106,7 +106,8 @@ const BTree = forwardRef((props, ref) => {
 
     const splitChildren = async (tree, root, i, oldChild) => {
         await animateNodeColor(tree, oldChild, 'purple');
-
+        oldChild.name = '';
+        
         var newChild = createNode(oldChild.leaf);
 
         for(let j = 0; j < degree-1; j++){ // oldChild keys put in newChild
@@ -139,11 +140,11 @@ const BTree = forwardRef((props, ref) => {
 
         await sleep();
         
-        await animateNodeColor(tree, oldChild, 'green');
+        animateNodeColor(tree, oldChild, 'green');
         oldChild.name = createName(oldChild.keys);
-        await animateNodeColor(tree, root, 'green');
+        animateNodeColor(tree, root, 'green');
         root.name = createName(root.keys);
-        await animateNodeColor(tree, newChild, 'green');
+        animateNodeColor(tree, newChild, 'green');
         newChild.name = createName(newChild.keys);
     }
 
