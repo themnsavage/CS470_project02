@@ -111,18 +111,21 @@ const BTree = forwardRef((props, ref) => {
 
         for(let j = 0; j < degree-1; j++){ // oldChild keys put in newChild
             let oldChildIndex = j+degree;
-            newChild.keys.push(oldChild.keys[oldChildIndex]);
+            newChild.keys.splice(j,0,oldChild.keys[oldChildIndex]);
             oldChild.keys.splice(oldChildIndex,1);
         }
 
         if(!oldChild.leaf){ // if not a child leaf
-            for(let j = 0; j < oldChild.children.length; j++){ // oldChild children put in newChild 
-                let oldChildIndex = j+(degree-1);
-                newChild.children.push(oldChild.children[oldChildIndex]);
-                oldChild.children.splice(oldChildIndex,1);
-            }
+            let middle = oldChild.children.length/2;
+            let removeCount = oldChild.children.length - middle;
+            oldChild.children.forEach((child, index) => {
+                if(index >= middle){
+                    newChild.children.push({...child});
+                }
+            });
+            oldChild.children.splice(middle, removeCount);
         }
-
+        
         // add new node to root's children
         root.children.splice(i+1,0,newChild);
 
@@ -154,11 +157,8 @@ const BTree = forwardRef((props, ref) => {
             newRoot.children.push(root);
             tree[0] = newRoot
             await splitChildren(tree, newRoot, 0, newRoot.children[0]);
-            console.log(`root #'s children: ${newRoot.children.length}`);
-            console.log(`root keys: ${newRoot.keys}`);
-            console(`root[1] keys: ${root.children[1].keys}`);
-            console(`root[0] keys: ${root.children[0].keys}`);
             await insertNonFull(tree, newRoot, newKey);
+            tree[0] = newRoot;
         }
         else{
             await insertNonFull(tree, tree[0], newKey);
