@@ -1,4 +1,3 @@
-import { wait } from "@testing-library/user-event/dist/utils";
 import { useState, forwardRef, useImperativeHandle } from "react";
 import Tree from 'react-d3-tree';
 
@@ -10,6 +9,10 @@ const BinaryTree = forwardRef((props, ref) => {
     const [binaryTree, setBinaryTree] = useState([{name:nullNode}]);
     const [animationSpeed, setAnimationSpeed] = useState(1500);
     
+    useImperativeHandle(ref, () => {
+        return {insert: insertNode};
+    });
+
     const renderForeignObjectNode = ({
         nodeDatum,
         toggleNode,
@@ -26,10 +29,6 @@ const BinaryTree = forwardRef((props, ref) => {
         </g>
       );
 
-    useImperativeHandle(ref, () => {
-        return {insert: insertNode};
-    });
-
     const sleep =  async () => {
         return new Promise(resolve => setTimeout(resolve, animationSpeed));
     }
@@ -41,6 +40,7 @@ const BinaryTree = forwardRef((props, ref) => {
         node.color = 'white';
         setBinaryTree([...tree]);
     }
+    
     const insertNode = async (value) => {
         var tree = binaryTree;
         var newNode = {name: value, color:'white', children: [{name: nullNode},{name: nullNode}]};

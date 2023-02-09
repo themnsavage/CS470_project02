@@ -2,15 +2,71 @@ import { useState, forwardRef, useImperativeHandle } from "react";
 import Tree from 'react-d3-tree';
 
 const BTree = forwardRef((props, ref) => {
+    // global variables
+    const nodeSize = { x: 90, y: 100 };
+    const foreignObjectProps = { width: nodeSize.x, height: nodeSize.y, x: -44, y: -40 };
+    // use state variables
     const [bTree, setBTree] = useState([{name:'', keys:[], leaf: true, children:[]}]);
     const [degree, setDegree] = useState(2)
     const [debug, setDebug] = useState('none');
+    const [animationSpeed, setAnimationSpeed] = useState(1500);
 
     useImperativeHandle(ref, () => {
-        return {insert: insertNode};
-    });
+        /*
+            description: allow parent component to set variables
+        */
+        return {
+            insert: insertKey,
+            find: findKey
+        };
+    })
+
+    const renderForeignObjectNode = ({
+        nodeDatum,
+        toggleNode,
+        foreignObjectProps
+      }) => (
+        /*
+            description: customize the rendering of nodes
+        */
+        <g>
+          {/* <circle r={15}> fill={"red"}</circle> */}
+          {/* `foreignObject` requires width & height to be explicitly set. */}
+          <foreignObject {...foreignObjectProps}>
+            <div style={{ borderStyle: "solid", borderWidth: "4px", borderColor: 'black', backgroundColor: nodeDatum.color, borderRadius: "25px"}}>
+              <h3 style={{ textAlign: "center" }}>{nodeDatum.name}</h3>
+            </div>
+          </foreignObject>
+        </g>
+      );
+
+    const sleep =  async () => {
+        /*
+            description: sleep function in milliseconds
+        */
+        return new Promise(resolve => setTimeout(resolve, animationSpeed));
+    }
+
+    const animateNodeColor = async (tree, node, color='green') => {
+        /*
+            description: animates changing the given node color 
+            and setting it back to default color.
+            tree(object): whole tree use for animation purposes
+            node(object): the given node to do animation to
+            color(string): the color to change the given node to
+        */
+        node.color = color;
+        setBTree([...tree]);
+        await sleep();
+        node.color = 'white';
+        setBTree([...tree]);
+    }
 
     const createName = (keys) => {
+        /*
+            description: creates a name with given list of keys
+            keys(list): the keys to create name with
+        */
         let name = '';
         keys.forEach(element => {
             name += `${element}, `;
@@ -19,8 +75,13 @@ const BTree = forwardRef((props, ref) => {
     }
 
     const createNode = (l= false) => {
+        /*
+            description: constructor for BTree node
+            l(bool): is new node a leaf node
+        */
         let node = {
             name: '',
+            color: 'white',
             leaf: l,
             keys:[],
             children: []
@@ -29,6 +90,10 @@ const BTree = forwardRef((props, ref) => {
     }
 
     const updateNames = (root) => {
+        /*
+            description: updates all the names from root to all its children
+            root(object): root node
+        */
         if(root?.keys){
             root.name = createName(root.keys);
         }
@@ -40,7 +105,16 @@ const BTree = forwardRef((props, ref) => {
 
     }
 
-    const insertNonFull = (root, newKey) => {
+    const insertNonFull = async (tree, root, newKey) => {
+        /*
+            description: case when inserting a node to non-full node
+            tree(object): whole BTree for animation purposes
+            root(object): the current node
+            newKey(int): the new key being inserted to BTree
+        */
+        updateNames(tree[0]);
+        await animateNodeColor(tree, root, 'green');
+        
         let insertIndex = root.keys.length - 1;
         if(root.leaf){ // if leaf
             // find index to add key into
@@ -48,6 +122,8 @@ const BTree = forwardRef((props, ref) => {
                 insertIndex--;
              }
              root.keys.splice(insertIndex + 1, 0, newKey);
+             animateNodeColor(tree, root, 'yellow');
+             updateNames(root);
         }
         else{
             // find index to add key into
@@ -56,60 +132,128 @@ const BTree = forwardRef((props, ref) => {
             }
 
             if(root.children[insertIndex + 1].keys.length == (2*degree) - 1){ // is child full
-                splitChildren(root, insertIndex + 1, root.children[insertIndex + 1]);
+                await splitChildren(tree, root, insertIndex + 1, root.children[insertIndex + 1]);
                 if(root.keys[insertIndex + 1] < newKey){
                     insertIndex++
                 }
             }
 
-            insertNonFull(root.children[insertIndex + 1], newKey); // recursive call to insert newKey to correct child
+            await insertNonFull(tree, root.children[insertIndex + 1], newKey); // recursive call to insert newKey to correct child
         }
     }
 
-    const splitChildren = (root, i, oldChild) => {
+    const splitChildren = async (tree, root, i, oldChild) => {
+        /*
+            description: the case when a node needs to be split into two
+            tree(object): whole BTree for animation purposes
+            root(object): parent node of node needing to be split
+            i(int): index
+            oldChild(object): node to split into two
+        */
+        await animateNodeColor(tree, oldChild, 'purple');
+        oldChild.name = '';
+        
         var newChild = createNode(oldChild.leaf);
 
         for(let j = 0; j < degree-1; j++){ // oldChild keys put in newChild
             let oldChildIndex = j+degree;
-            newChild.keys.push(oldChild.keys[oldChildIndex]);
+            newChild.keys.splice(j,0,oldChild.keys[oldChildIndex]);
             oldChild.keys.splice(oldChildIndex,1);
         }
 
         if(!oldChild.leaf){ // if not a child leaf
-            for(let j = 0; j < degree; j++){ // oldChild children put in newChild 
-                let oldChildIndex = j+degree;
-                newChild.children.push(oldChild.children[oldChildIndex]);
-                oldChild.children.splice(oldChildIndex,1);
-            }
+            let middle = oldChild.children.length/2;
+            let removeCount = oldChild.children.length - middle;
+            oldChild.children.forEach((child, index) => {
+                if(index >= middle){
+                    newChild.children.push({...child});
+                }
+            });
+            oldChild.children.splice(middle, removeCount);
         }
-
+        
         // add new node to root's children
         root.children.splice(i+1,0,newChild);
 
         //push middle key to root
         root.keys.splice(i,0,oldChild.keys[degree-1]);
         oldChild.keys.splice(degree-1,1);
+        
+        animateNodeColor(tree, oldChild, 'purple');
+        animateNodeColor(tree, root, 'purple');
+        animateNodeColor(tree, newChild, 'purple');
+
+        await sleep();
+        
+        animateNodeColor(tree, oldChild, 'green');
+        oldChild.name = createName(oldChild.keys);
+        animateNodeColor(tree, root, 'green');
+        root.name = createName(root.keys);
+        animateNodeColor(tree, newChild, 'green');
+        newChild.name = createName(newChild.keys);
     }
 
-    const insertNode = (newKey) => {
+    const insertKey = async (newKey) => {
+        /*
+            description: insert new key
+            newKey(string): the new key to insert to BTree
+        */
         newKey = parseInt(newKey);
         var tree = bTree;
         var root = tree[0];
         
         if(root.keys.length == (2*degree) - 1){
             var newRoot = createNode(false);
-            newRoot.children[0] = root;
-            splitChildren(newRoot, 1, root);
-            insertNonFull(newRoot, newKey);
-            root = newRoot;
+            newRoot.children.push(root);
+            tree[0] = newRoot
+            await splitChildren(tree, newRoot, 0, newRoot.children[0]);
+            await insertNonFull(tree, newRoot, newKey);
+            tree[0] = newRoot;
         }
         else{
-            insertNonFull(root, newKey);
+            await insertNonFull(tree, tree[0], newKey);
         }
 
-        updateNames(root);
-        tree[0] = root;
+        updateNames(tree[0]);
         setBTree([...tree]);
+    }
+
+    const btreeSearch = async (tree, node, key) => {
+        /*
+            description: parse through BTree to search for given key
+            tree(object): whole BTree for animation purposes
+            node(object): current node
+            key(int): key that is being search for
+        */
+        await animateNodeColor(tree, node, 'green');
+        let index = 0;
+        while(index < node.keys.length && key > node.keys[index]){
+            index++;
+        }
+        if(node.keys[index] == key){
+            await animateNodeColor(tree, node, 'blue');
+            return;
+        }
+
+        if(node.leaf){
+            await animateNodeColor(tree, node, 'red');
+        }    
+
+        btreeSearch(tree, node.children[index], key);
+    }
+
+    const findKey = async (key) => {
+        /*
+            description: convert key into int and checks BTree is not
+            empty before calling btreeSearch func
+            key(string): key to search for
+        */
+        key = parseInt(key);
+        var tree = bTree;
+        
+        if(tree[0].name != ''){
+            await btreeSearch(tree, tree[0], key);
+        }
     }
 
     return (
@@ -121,8 +265,11 @@ const BTree = forwardRef((props, ref) => {
             width={400}
             zoom={0.5}
             collapsible={false}
-            depthFactor={60}
+            depthFactor={100}
             translate ={{x: 450, y: 10}}
+            renderCustomNodeElement={(rd3tProps) =>
+                renderForeignObjectNode({ ...rd3tProps, foreignObjectProps })
+            }
             />
             <p>debug:{debug}</p>
         </div>
