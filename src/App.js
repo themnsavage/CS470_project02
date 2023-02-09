@@ -5,6 +5,11 @@ import BinaryTree from './BinaryTree'
 import BTree from './BTree';
 
 function App() {
+  /*
+    description: main component that brings all the other components together.
+  */
+
+  // use state variable
   const [insertInput, setInsert] = useState('');
   const [deleteInput, setDelete] = useState('');
   const [findInput, setFind] = useState('');
@@ -13,6 +18,9 @@ function App() {
   const bTreeRef = useRef();
 
   useEffect(() => {
+    /*
+      description: run specific procedures when insertInput variable state changes
+    */
     if(insertInput != ''){
       console.log(`insert input: ${insertInput}`);
       binaryTreeRef.current.insert(insertInput);
@@ -22,6 +30,9 @@ function App() {
   },[insertInput]);
 
   useEffect(() => {
+    /*
+      description: run specific procedures when deleteInput variable state changes
+    */
     if(deleteInput != ''){
       console.log(`delete input: ${deleteInput}`);
     }
@@ -29,6 +40,9 @@ function App() {
   },[deleteInput]);
 
   useEffect(() => {
+    /*
+      description: run specific procedures when findInput variable state changes
+    */
     if(findInput != ''){
       console.log(`find input: ${findInput}`);
       bTreeRef.current.find(findInput);
