@@ -4,7 +4,7 @@ import Tree from 'react-d3-tree';
 const RBTree = forwardRef((props, ref) => {
     const nullNode = 'NULL';
     const [RBTree, setRBTree] = useState([{name:nullNode}]);
-    const [animationSpeed, setAnimationSpeed] = useState(15);
+    const [animationSpeed, setAnimationSpeed] = useState(1500);
 
     const nodeSize = { x: 60, y: 70 }; // node size for render (this looks good imo)
     const foreignObjectProps = { width: nodeSize.x, height: nodeSize.y, x: -25, y: -50 }; // offset so we look decent
