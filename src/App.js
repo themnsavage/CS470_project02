@@ -38,6 +38,7 @@ function App() {
     */
     if(deleteInput != ''){
       console.log(`delete input: ${deleteInput}`);
+      rbTreeRef.current.remove(deleteInput);
     }
     setDelete('');
   },[deleteInput]);

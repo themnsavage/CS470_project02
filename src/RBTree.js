@@ -29,6 +29,7 @@ const RBTree = forwardRef((props, ref) => {
     useImperativeHandle(ref, () => {
         return {
             insert: insertNode,
+            remove: removeKey,
             find: findKey
         };
     });
@@ -80,10 +81,10 @@ const RBTree = forwardRef((props, ref) => {
         else {
             await animateNodeColor(tree, node, 'green');
             if (key < node.name) {
-                await treeSearch(tree, node.children[0], key);
+                return await treeSearch(tree, node.children[0], key);
             }
             else {
-                await treeSearch(tree, node.children[1], key);
+                return await treeSearch(tree, node.children[1], key);
             }
         }
     }
@@ -139,7 +140,6 @@ const RBTree = forwardRef((props, ref) => {
         setRBTree([...tree]);
         await rbInsertFixup(tree, newNode);
         setRBTree([...tree]);
-        //printNode(tree[0]);
     }
 
     // print tree (pass in head of tree tree[0])
@@ -257,6 +257,249 @@ const RBTree = forwardRef((props, ref) => {
             return grandparent.children[1];
         }
         return grandparent.children[0];
+    }
+
+    const removeKey = async (key) => {
+        key = parseInt(key);
+        var tree = RBTree;
+        
+        if (tree[0].name === nullNode) {
+            return;
+        }
+
+        let node = await treeSearch(tree, tree[0], key);
+
+        if (node.name !== nullNode) {
+            await removeNode(tree, node);
+        }
+    }
+
+    const removeNode = async (tree, node) => {
+        if (node.children[0].name !== nullNode && node.children[1].name !== nullNode) {
+            let predecessorNode = await getPredecessor(tree, node);
+            let predecessorKey = predecessorNode.name;
+            await removeNode(tree, predecessorNode);
+            node.name = predecessorKey;
+            await animateNodeColor(tree, node, "green");
+            return;
+        }
+
+        if (node.color === "black") {
+            await prepareForRemoval(tree, node);
+        }
+        await BSTRemove(tree, node);
+
+        if (tree[0].name !== nullNode && tree[0].color === "red") {
+            tree[0].color = "black";
+        }
+
+        setRBTree([...tree]);
+    }
+
+    const BSTRemove = async (tree, node) => {
+        if (node.name === nullNode) {
+            return;
+        }
+
+        if (node.children[0].name !== nullNode && node.children[1] !== nullNode) {
+            let successorNode = node.children[1];
+            while (successorNode.name !== nullNode) {
+                await animateNodeColor(tree, successorNode, "plum");
+                successorNode = node.children[0];
+            }
+            await animateNodeColor(tree, successorNode, "green");
+
+            let successorKey = successorNode.name;
+
+            await BSTRemove(tree, successorNode);
+
+            node.name = successorKey;
+            await animateNodeColor(tree, node, "green");
+        }
+
+        else if (tree[0].name === node.name) {
+            if (tree[0].name === nullNode) {
+                tree[0] = node.children[0];
+            }
+            else {
+                tree[0] = node.children[1];
+            }
+
+            if (tree[0].name !== nullNode) {
+                tree[0].parent = {name: nullNode};
+            }
+
+            // delete node
+        }
+
+        else if (node.children[0] !== nullNode) {
+            await replaceChild(tree, node.parent, node, node.children[0]);
+
+            //delete node
+        }
+
+        else {
+            await replaceChild(tree, node.parent, node, node.children[1]);
+
+            //delete node
+        }
+
+    }
+
+    const prepareForRemoval = async (tree, node) => {
+        if (tryCase1(node)) {
+            return;
+        }
+
+        let sibling = getSibling(node);
+
+        if (await tryCase2(tree, node, sibling)) {
+            sibling = getSibling(node);
+        }
+        if (await tryCase3(tree, node, sibling)) {
+            return;
+        }
+        if (tryCase4(node, sibling)) {
+            return;
+        }
+        if (await tryCase5(tree, node, sibling)) {
+            sibling = getSibling(node);
+        }
+        if (await tryCase6(tree, node, sibling)) {
+            sibling = getSibling(node);
+        }
+    }
+
+    const tryCase1 = (node) => {
+        if (node.color === "red" || node.parent.name == nullNode) {
+            return true;
+        }
+        return false;
+    }
+
+    const tryCase2 = async (tree, node, sibling) => {
+        if (sibling.color === "red") {
+            node.parent.color = "red";
+            sibling.color = "black"
+            if (node.name === node.parent.children[0].name) {
+                await leftRotate(tree, node.parent)
+            }
+            else {
+                await rightRotate(tree, node.parent);
+            }
+            return true;
+        }
+        return false;
+    }
+
+    const tryCase3 = async (tree, node, sibling) => {
+        if (node.parent.color === "black" && areBothChildrenBlack(sibling)) {
+            sibling.color = "red";
+            await prepareForRemoval(tree, node.parent);
+            return true;
+        }
+        return false;
+    }
+
+    const tryCase4 = (node, sibling) => {
+        if (node.parent.color === "red" && areBothChildrenBlack(sibling)) {
+            node.parent.color = "black";
+            sibling.color = "red";
+            return true;
+        }
+        return false;
+    }
+
+    const tryCase5 = async (tree, node, sibling) => {
+        if (isNotNoneAndRed(sibling.children[0])) {
+            if (isNoneOrBlack(sibling.children[0])) {
+                if (node.name === node.parent.children[0].name) {
+                    sibling.color = "red";
+                    sibling.children[0].color = "black";
+                    await rightRotate(tree, sibling);
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    const tryCase6 = async (tree, node, sibling) => {
+        if (isNoneOrBlack(sibling.children[0])) {
+            if (isNotNoneAndRed(sibling.children[1])) {
+                if (node.name == node.parent.children[1].name) {
+                    sibling.color = "red";
+                    sibling.children[1].color = "black";
+                    await leftRotate(tree, sibling);
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    const replaceChild = async (tree, node, curChild, newChild) => {
+        if (node.children[0].name === curChild.name) {
+            node.children[0] = newChild;
+            await animateNodeColor(tree, newChild, "green");
+            return true;
+        }
+        else if (node.children[1].name === curChild.name) {
+            node.children[1] = newChild;
+            await animateNodeColor(tree, newChild, "green");
+            return true;
+        }
+        return false;
+    }
+
+    const isNotNoneAndRed = (node) => {
+        if (node.name === nullNode) {
+            return false;
+        }
+        if (node.color === "red") {
+            return true;
+        }
+        return false;
+    }
+
+    const isNoneOrBlack = (node) => {
+        if (node.name === nullNode) {
+            return true;
+        }
+        if (node.color === "black") {
+            return true;
+        }
+        return false;
+    }
+
+    const areBothChildrenBlack = (node) => {
+        if (node.children[0].name !== nullNode && node.children[0].color === "red") {
+            return false;
+        }
+        if (node.children[1].name !== nullNode && node.children[1].color === "red") {
+            return false;
+        }
+        return true;
+    }
+
+    const getSibling = (node) => {
+        if (node.parent.name !== nullNode) {
+            if (node.name === node.parent.children[0].name) {
+                return node.parent.children[1];
+            }
+            return node.parent.children[0];
+        }
+        return {name: nullNode};
+    }
+
+    const getPredecessor = async (tree, node) => {
+        let curNode = node.children[0];
+        while (curNode.children[1].name !== nullNode) {
+            await animateNodeColor(tree, curNode, "plum");
+            curNode = curNode.children[1];
+        }
+        await animateNodeColor(tree, curNode, "green");
+        return curNode;
     }
 
     return (
