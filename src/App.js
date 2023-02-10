@@ -49,6 +49,7 @@ function App() {
     if(findInput != ''){
       console.log(`find input: ${findInput}`);
       bTreeRef.current.find(findInput);
+      rbTreeRef.current.find(findInput);
     }
     setFind('');
   },[findInput]);

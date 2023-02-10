@@ -27,7 +27,10 @@ const RBTree = forwardRef((props, ref) => {
       );
 
     useImperativeHandle(ref, () => {
-        return {insert: insertNode};
+        return {
+            insert: insertNode,
+            find: findKey
+        };
     });
 
     // MARK: Animations
@@ -46,7 +49,7 @@ const RBTree = forwardRef((props, ref) => {
 
     const animateNodeColors = async (tree, nodes, color) => {
         if (Array.isArray(color)) {
-            if (color.length == nodes.length) {
+            if (color.length === nodes.length) {
                 for (let i = 0; i < nodes.length; ++i) {
                     nodes[i].backgroundColor = color[i];
                 }
@@ -63,6 +66,40 @@ const RBTree = forwardRef((props, ref) => {
             nodes[i].backgroundColor = 'white';
         }
         setRBTree([...tree]);
+    }
+
+    const treeSearch = async (tree, node, key) => {
+        if(node.name === nullNode) {
+            await animateNodeColor(tree, node, 'red');
+            return node;
+        }
+        else if (node.name == key) {
+            await animateNodeColor(tree, node, 'blue');
+            return node;
+        }
+        else {
+            await animateNodeColor(tree, node, 'green');
+            if (key < node.name) {
+                await treeSearch(tree, node.children[0], key);
+            }
+            else {
+                await treeSearch(tree, node.children[1], key);
+            }
+        }
+    }
+
+    const findKey = async (key) => {
+        /*
+            description: convert key into int and checks RBTree is not
+            empty before calling btreeSearch func
+            key(string): key to search for
+        */
+        key = parseInt(key);
+        var tree = RBTree;
+        
+        if(tree[0].name !== nullNode){
+            await treeSearch(tree, tree[0], key);
+        }
     }
 
     const insertNode = async (value) => {
