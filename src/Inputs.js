@@ -17,6 +17,9 @@ const Inputs = forwardRef(({setInsert, setDelete, setFind}, ref) => {
 
     useEffect(() => {
         document.getElementById('inputText').disabled = disabledInput;
+        document.getElementById('insertButton').disabled = disabledInput;
+        document.getElementById('deleteButton').disabled = disabledInput;
+        document.getElementById('findButton').disabled = disabledInput;
     }, [disabledInput])
 
     const handleClick = (event) => {
