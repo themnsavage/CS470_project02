@@ -4,10 +4,10 @@ import Tree from 'react-d3-tree';
 const RBTree = forwardRef((props, ref) => {
     const nullNode = 'NULL';
     const [RBTree, setRBTree] = useState([{name:nullNode}]);
-    const [animationSpeed, setAnimationSpeed] = useState(1500);
+    const [animationSpeed, setAnimationSpeed] = useState(15);
 
-    const nodeSize = { x: 60, y: 60 };
-    const foreignObjectProps = { width: nodeSize.x, height: nodeSize.y, x: -25, y: -50 };
+    const nodeSize = { x: 60, y: 70 }; // node size for render (this looks good imo)
+    const foreignObjectProps = { width: nodeSize.x, height: nodeSize.y, x: -25, y: -50 }; // offset so we look decent
 
     // MARK: Custom node
     const renderForeignObjectNode = ({
@@ -16,8 +16,6 @@ const RBTree = forwardRef((props, ref) => {
         foreignObjectProps
       }) => (
         <g>
-          {/* <circle r={15}> fill={"red"}</circle> */}
-          {/* `foreignObject` requires width & height to be explicitly set. */}
           <foreignObject {...foreignObjectProps}>
             <div style={{ borderStyle: "solid", borderWidth: "4px", borderColor: nodeDatum.color, backgroundColor: nodeDatum.backgroundColor, borderRadius: "25px"}}>
               <h3 style={{ textAlign: "center" }}>{nodeDatum.name}</h3>
@@ -26,6 +24,7 @@ const RBTree = forwardRef((props, ref) => {
         </g>
       );
 
+    // functions that app.js can use
     useImperativeHandle(ref, () => {
         return {
             insert: insertNode,
@@ -36,10 +35,12 @@ const RBTree = forwardRef((props, ref) => {
 
     // MARK: Animations
 
+    // Allows for pause in annimations
     const sleep =  async () => {
         return new Promise(resolve => setTimeout(resolve, animationSpeed));
     }
 
+    // animate one node color
     const animateNodeColor = async (tree, node, color='green') => {
         node.backgroundColor = color;
         setRBTree([...tree]);
@@ -48,6 +49,7 @@ const RBTree = forwardRef((props, ref) => {
         setRBTree([...tree]);
     }
 
+    // animate many node colors at the same time
     const animateNodeColors = async (tree, nodes, color) => {
         if (Array.isArray(color)) {
             if (color.length === nodes.length) {
@@ -69,6 +71,19 @@ const RBTree = forwardRef((props, ref) => {
         setRBTree([...tree]);
     }
 
+    // MARK: Search
+
+    // exposed search function
+    const findKey = async (key) => {
+        key = parseInt(key);
+        var tree = RBTree;
+        
+        if(tree[0].name !== nullNode){
+            await treeSearch(tree, tree[0], key);
+        }
+    }
+
+    // recursive search helper function
     const treeSearch = async (tree, node, key) => {
         if(node.name === nullNode) {
             await animateNodeColor(tree, node, 'red');
@@ -89,20 +104,9 @@ const RBTree = forwardRef((props, ref) => {
         }
     }
 
-    const findKey = async (key) => {
-        /*
-            description: convert key into int and checks RBTree is not
-            empty before calling btreeSearch func
-            key(string): key to search for
-        */
-        key = parseInt(key);
-        var tree = RBTree;
-        
-        if(tree[0].name !== nullNode){
-            await treeSearch(tree, tree[0], key);
-        }
-    }
+    // MARK: Insert
 
+    // exposed insert function
     const insertNode = async (value) => {
         var tree = RBTree;
         var newNode = {name: value, color: "red", parent: {name: nullNode}, children: [{name: nullNode, backgroundColor: "white"},{name: nullNode, backgroundColor: "white"}], backgroundColor: "white"};
@@ -142,16 +146,9 @@ const RBTree = forwardRef((props, ref) => {
         setRBTree([...tree]);
     }
 
-    // print tree (pass in head of tree tree[0])
-    const printNode = (node) => {
-        if (node.name !== nullNode) {
-            console.log(node);
-            printNode(node.children[0]);
-            printNode(node.children[1]);
-        }
-    }
-
     // MARK: helper functions for RB tree insert
+
+    // after a node is inserted, makes tree balenced if it needs to be
     const rbInsertFixup = async (tree, element) => {
         if (element.parent.name === nullNode) {
             element.color = "black";
@@ -199,48 +196,6 @@ const RBTree = forwardRef((props, ref) => {
 
     }
 
-    const leftRotate = async (tree, element) => {
-        //await animateNodeColor(tree, element);
-        await animateNodeColors(tree, [element, element.children[1]], ["plum", "PaleTurquoise"]);
-        let temp = element.children[1];
-        element.children[1] = temp.children[0];
-        if (temp.children[0].name !== nullNode) {
-            temp.children[0].parent = element;
-        }
-        temp.parent = element.parent;
-        if (element.parent.name === nullNode) {
-            tree[0] = temp;
-        } else if (element.parent.children[0].name === element.name) {
-            element.parent.children[0] = temp
-        } else {
-            element.parent.children[1] = temp;
-        }
-        temp.children[0] = element;
-        element.parent = temp;
-        await animateNodeColors(tree, [element, element.parent], ["plum", "PaleTurquoise"]);
-    }
-
-    const rightRotate = async (tree, element) => {
-        //await animateNodeColor(tree, element);
-        await animateNodeColors(tree, [element, element.children[0]], ["PaleTurquoise", "plum"]);
-        let temp = element.children[0];
-        element.children[0] = temp.children[1];
-        if (temp.children[1].name !== nullNode) {
-            temp.children[1].parent = element;
-        }
-        temp.parent = element.parent;
-        if (element.parent.name === nullNode) {
-            tree[0] = temp;
-        } else if (element.parent.children[1].name === element.name) {
-            element.parent.children[1] = temp
-        } else {
-            element.parent.children[0] = temp;
-        }
-        temp.children[1] = element;
-        element.parent = temp;
-        await animateNodeColors(tree, [element, element.parent], ["PaleTurquoise", "plum"]);
-    } 
-
     const getGrandparent = (element) => {
         if (element.parent.name === nullNode) {
             return {name: nullNode};
@@ -259,6 +214,9 @@ const RBTree = forwardRef((props, ref) => {
         return grandparent.children[0];
     }
 
+    // MARK: Remove
+
+    // exposed remove function
     const removeKey = async (key) => {
         key = parseInt(key);
         var tree = RBTree;
@@ -273,6 +231,8 @@ const RBTree = forwardRef((props, ref) => {
             await removeNode(tree, node);
         }
     }
+
+    // MARK: helper functions for RB tree remove
 
     const removeNode = async (tree, node) => {
         if (node.children[0].name !== nullNode && node.children[1].name !== nullNode) {
@@ -301,9 +261,9 @@ const RBTree = forwardRef((props, ref) => {
             return;
         }
 
-        if (node.children[0].name !== nullNode && node.children[1] !== nullNode) {
+        if (node.children[0].name !== nullNode && node.children[1].name !== nullNode) {
             let successorNode = node.children[1];
-            while (successorNode.name !== nullNode) {
+            while (successorNode.children[0].name !== nullNode) {
                 await animateNodeColor(tree, successorNode, "plum");
                 successorNode = node.children[0];
             }
@@ -368,10 +328,22 @@ const RBTree = forwardRef((props, ref) => {
         if (await tryCase6(tree, node, sibling)) {
             sibling = getSibling(node);
         }
+
+        sibling.color = node.parent.color;
+        node.parent.color = "black";
+
+        if (node.name === node.parent.children[0].name) {
+            sibling.children[1].color = "black";
+            await leftRotate(tree, node.parent);
+        }
+        else {
+            sibling.children[0].color = "black";
+            await rightRotate(tree, node.parent);
+        }
     }
 
     const tryCase1 = (node) => {
-        if (node.color === "red" || node.parent.name == nullNode) {
+        if (node.color === "red" || node.parent.name === nullNode) {
             return true;
         }
         return false;
@@ -412,7 +384,7 @@ const RBTree = forwardRef((props, ref) => {
 
     const tryCase5 = async (tree, node, sibling) => {
         if (isNotNoneAndRed(sibling.children[0])) {
-            if (isNoneOrBlack(sibling.children[0])) {
+            if (isNoneOrBlack(sibling.children[1])) {
                 if (node.name === node.parent.children[0].name) {
                     sibling.color = "red";
                     sibling.children[0].color = "black";
@@ -427,7 +399,7 @@ const RBTree = forwardRef((props, ref) => {
     const tryCase6 = async (tree, node, sibling) => {
         if (isNoneOrBlack(sibling.children[0])) {
             if (isNotNoneAndRed(sibling.children[1])) {
-                if (node.name == node.parent.children[1].name) {
+                if (node.name === node.parent.children[1].name) {
                     sibling.color = "red";
                     sibling.children[1].color = "black";
                     await leftRotate(tree, sibling);
@@ -473,6 +445,12 @@ const RBTree = forwardRef((props, ref) => {
     }
 
     const areBothChildrenBlack = (node) => {
+        // if (node.children[0].name !== nullNode && node.children[1].name !== nullNode) {
+        //     return true;
+        // }
+        if (node.name == nullNode) {
+            return false;
+        }
         if (node.children[0].name !== nullNode && node.children[0].color === "red") {
             return false;
         }
@@ -499,8 +477,63 @@ const RBTree = forwardRef((props, ref) => {
             curNode = curNode.children[1];
         }
         await animateNodeColor(tree, curNode, "green");
+        console.log("pred is:")
+        console.log(curNode)
         return curNode;
     }
+
+    // MARK: Common helper functions
+
+    // print tree (pass in head of tree tree[0])
+    const printNode = (node) => {
+        if (node.name !== nullNode) {
+            console.log(node);
+            printNode(node.children[0]);
+            printNode(node.children[1]);
+        }
+    }
+
+    // left rotation on element
+    const leftRotate = async (tree, element) => {
+        await animateNodeColors(tree, [element, element.children[1]], ["plum", "PaleTurquoise"]);
+        let temp = element.children[1];
+        element.children[1] = temp.children[0];
+        if (temp.children[0].name !== nullNode) {
+            temp.children[0].parent = element;
+        }
+        temp.parent = element.parent;
+        if (element.parent.name === nullNode) {
+            tree[0] = temp;
+        } else if (element.parent.children[0].name === element.name) {
+            element.parent.children[0] = temp
+        } else {
+            element.parent.children[1] = temp;
+        }
+        temp.children[0] = element;
+        element.parent = temp;
+        await animateNodeColors(tree, [element, element.parent], ["plum", "PaleTurquoise"]);
+    }
+
+    // right rotation on element
+    const rightRotate = async (tree, element) => {
+        await animateNodeColors(tree, [element, element.children[0]], ["PaleTurquoise", "plum"]);
+        let temp = element.children[0];
+        element.children[0] = temp.children[1];
+        if (temp.children[1].name !== nullNode) {
+            temp.children[1].parent = element;
+        }
+        temp.parent = element.parent;
+        if (element.parent.name === nullNode) {
+            tree[0] = temp;
+        } else if (element.parent.children[1].name === element.name) {
+            element.parent.children[1] = temp
+        } else {
+            element.parent.children[0] = temp;
+        }
+        temp.children[1] = element;
+        element.parent = temp;
+        await animateNodeColors(tree, [element, element.parent], ["PaleTurquoise", "plum"]);
+    } 
 
     return (
         <Tree
