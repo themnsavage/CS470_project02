@@ -3,6 +3,7 @@ import { useEffect, useState, useRef } from "react";
 import Inputs from './Inputs';
 import BinaryTree from './BinaryTree'
 import BTree from './BTree';
+import VanEmdeTree from './VanEmde';
 
 function App() {
   /*
@@ -15,8 +16,9 @@ function App() {
   const [findInput, setFind] = useState('');
 
   const inputRef = useRef();
-  const binaryTreeRef = useRef();
-  const bTreeRef = useRef();
+  // const binaryTreeRef = useRef();
+  // const bTreeRef = useRef();
+  const vanEmdeTreeRef = useRef();
 
   useEffect(() => {
     /*
@@ -26,8 +28,9 @@ function App() {
       inputRef.current.disable(true);
       if(insertInput != ''){
         console.log(`insert input: ${insertInput}`);
-        await binaryTreeRef.current.insert(insertInput);
-        await bTreeRef.current.insert(insertInput);
+        // await binaryTreeRef.current.insert(insertInput);
+        // await bTreeRef.current.insert(insertInput);
+        await vanEmdeTreeRef.current.insert(insertInput);
       }
       setInsert('');
       inputRef.current.disable(false);
@@ -60,7 +63,7 @@ function App() {
       inputRef.current.disable(true);
       if(findInput != ''){
         console.log(`find input: ${findInput}`);
-        await bTreeRef.current.find(findInput);
+        // await bTreeRef.current.find(findInput);
       }
       setFind('');
       inputRef.current.disable(false);
@@ -78,10 +81,12 @@ function App() {
       </div>
       <h1>Inputs:</h1>
       <Inputs setInsert={setInsert} setDelete={setDelete} setFind={setFind} ref={inputRef}/>
-      <h2>Binary Tree:</h2>
+      {/* <h2>Binary Tree:</h2>
       <BinaryTree ref={binaryTreeRef}/>
       <h2>B-Tree:</h2>
-      <BTree ref={bTreeRef}/>
+      <BTree ref={bTreeRef}/> */}
+      <h2>van Emde Boas Tree:</h2>
+      <VanEmdeTree ref={vanEmdeTreeRef}/>
     </div>
   );
 }
