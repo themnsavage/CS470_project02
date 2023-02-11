@@ -7,9 +7,9 @@ const BTree = forwardRef((props, ref) => {
     const foreignObjectProps = { width: nodeSize.x, height: nodeSize.y, x: -44, y: -40 };
     // use state variables
     const [bTree, setBTree] = useState([{name:'', keys:[], leaf: true, children:[]}]);
-    const [degree, setDegree] = useState(2)
+    const [degree, setDegree] = useState(2);
     const [debug, setDebug] = useState('none');
-    const [animationSpeed, setAnimationSpeed] = useState(1500);
+    const [animationSpeed, setAnimationSpeed] = useState(100);
 
     useImperativeHandle(ref, () => {
         /*
@@ -84,8 +84,8 @@ const BTree = forwardRef((props, ref) => {
             name: '',
             color: 'white',
             leaf: l,
-            keys:[],
-            children: []
+            keys: [],
+            children: [],
         }
         return node;
     }
@@ -270,6 +270,50 @@ const BTree = forwardRef((props, ref) => {
     }
 
     /**
+     * Moves the last key of the child located at keyIndex - 1 into root,
+     * and inserts the replaced root value into the first position of the child at keyIndex
+     */
+    const borrowFromPrevious = (root, keyIndex) => {
+
+        const child = root.children[keyIndex];
+        const sibling = root.children[keyIndex - 1];
+
+        // Insert key into child
+        child.keys.splice(0, 0, root.keys[keyIndex - 1]); 
+
+        // Remove key from sibling and move to parent
+        root.keys[keyIndex - 1] = sibling.keys.pop();
+
+        // If child is leaf, we must also move child from sibling to child
+        if (child.leaf) {
+            child.children.splice(0, 0, sibling.children.pop());
+        }
+
+    }
+
+    /**
+     * Moves the first key of the child located at keyIndex + 1 into root,
+     * and inserts the replaced root value into the last position of the child at keyIndex
+     */
+    const borrowFromNext = (root, keyIndex) => {
+
+        const child = root.children[keyIndex];
+        const sibling = root.children[keyIndex + 1];
+
+        // Insert key into child
+        child.keys.push(root.keys[keyIndex]); 
+
+        // Remove key from sibling and move to parent
+        root.keys[keyIndex] = sibling.keys.shift();
+
+        // If child is leaf, we must also move child from sibling to child
+        if (child.leaf) {
+            child.children.push(sibling.children.shift());
+        }
+
+    }
+
+    /**
      * Merges the child in root located at keyIndex with its next sibling
      */
     const merge = (root, keyIndex) => {
@@ -293,6 +337,30 @@ const BTree = forwardRef((props, ref) => {
         
         // Update child name
         child.name = createName(child.keys);
+
+    }
+
+    const fill = (root, keyIndex) => {
+
+        // If child is not first child and previous sibling has at least t keys,
+        // borrow a key from previous sibling
+        if (keyIndex !== 0 && root.children[keyIndex - 1].keys.length >= degree) {
+            borrowFromPrevious(root, keyIndex);
+        }
+
+        // If child is not last child and next sibling has at least t keys,
+        // borrow a key from next sibling
+        if (keyIndex !== (root.keys.length)) {
+            borrowFromNext(root, keyIndex);
+        }
+
+        // Otherwise, merge child with its sibling
+        // If last child, merge with previous sibling.
+        // Otherwise, merge with next.
+        else {
+            if (keyIndex !== (root.keys.length)) merge(root, keyIndex);
+            else merge(root, keyIndex - 1);
+        }
 
     }
 
@@ -347,6 +415,36 @@ const BTree = forwardRef((props, ref) => {
             
             }
         
+        }
+
+        else {
+
+            // Case 3 - node is not leaf and does NOT contain key
+            // (If node is leaf and doesn't contain key, the key is not in the tree.)
+            // Determine which subtree should contain key
+            if (!root.leaf) {
+
+                var childIndex = 0;
+                while (childIndex < root.keys.length && root.keys[childIndex] < key) {
+                    childIndex += 1;
+                }
+
+                const isLastChild = (childIndex === root.keys.length);
+
+                // If child has less than t keys, fill child
+                if (root.children[childIndex].keys.length < degree) {
+                    fill(root, childIndex);
+                }
+
+                if (isLastChild && (childIndex > root.keys.length)) {
+                    deleteNodeKey(tree, root.children[childIndex - 1], key);
+                }
+                else {
+                    deleteNodeKey(tree, root.children[childIndex], key);
+                }
+
+            }
+
         }
 
     }
