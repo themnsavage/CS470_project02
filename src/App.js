@@ -15,6 +15,7 @@ function App() {
   const [deleteInput, setDelete] = useState('');
   const [findInput, setFind] = useState('');
 
+  const inputRef = useRef();
   const binaryTreeRef = useRef();
   const bTreeRef = useRef();
   const rbTreeRef = useRef();
@@ -23,36 +24,54 @@ function App() {
     /*
       description: run specific procedures when insertInput variable state changes
     */
-    if(insertInput != ''){
-      console.log(`insert input: ${insertInput}`);
-      binaryTreeRef.current.insert(insertInput);
-      bTreeRef.current.insert(insertInput);
-      rbTreeRef.current.insert(insertInput);
+    async function handleInsert(){
+      inputRef.current.disable(true);
+      if(insertInput != ''){
+        console.log(`insert input: ${insertInput}`);
+        await binaryTreeRef.current.insert(insertInput);
+        await bTreeRef.current.insert(insertInput);
+        await rbTreeRef.current.insert(insertInput);
+      }
+      setInsert('');
+      inputRef.current.disable(false);
     }
-    setInsert('');
+
+    handleInsert();
   },[insertInput]);
 
   useEffect(() => {
     /*
       description: run specific procedures when deleteInput variable state changes
     */
-    if(deleteInput != ''){
-      console.log(`delete input: ${deleteInput}`);
-      rbTreeRef.current.remove(deleteInput);
+    async function handleDelete(){
+      inputRef.current.disable(true);
+      if(deleteInput != ''){
+        console.log(`delete input: ${deleteInput}`);
+        await rbTreeRef.current.remove(deleteInput);
+      }
+      setDelete('');
+      inputRef.current.disable(false);
     }
-    setDelete('');
+
+    handleDelete();
   },[deleteInput]);
 
   useEffect(() => {
     /*
       description: run specific procedures when findInput variable state changes
     */
-    if(findInput != ''){
-      console.log(`find input: ${findInput}`);
-      bTreeRef.current.find(findInput);
-      rbTreeRef.current.find(findInput);
+    async function handleInsert(){
+      inputRef.current.disable(true);
+      if(findInput != ''){
+        console.log(`find input: ${findInput}`);
+        await bTreeRef.current.find(findInput);
+        await rbTreeRef.current.find(findInput);
+      }
+      setFind('');
+      inputRef.current.disable(false);
     }
-    setFind('');
+    
+    handleInsert();
   },[findInput]);
 
 
@@ -63,7 +82,7 @@ function App() {
         <h1>Data Structures Visuals</h1>
       </div>
       <h1>Inputs:</h1>
-      <Inputs setInsert={setInsert} setDelete={setDelete} setFind={setFind}/>
+      <Inputs setInsert={setInsert} setDelete={setDelete} setFind={setFind} ref={inputRef}/>
       <h2>Binary Tree:</h2>
       <BinaryTree ref={binaryTreeRef}/>
       <h2>B-Tree:</h2>

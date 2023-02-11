@@ -257,22 +257,19 @@ const BTree = forwardRef((props, ref) => {
     }
 
     return (
-        <div>
-            <Tree
-            data={bTree}
-            orientation={'vertical'}
-            height={400}
-            width={400}
-            zoom={0.5}
-            collapsible={false}
-            depthFactor={100}
-            translate ={{x: 450, y: 10}}
-            renderCustomNodeElement={(rd3tProps) =>
-                renderForeignObjectNode({ ...rd3tProps, foreignObjectProps })
-            }
-            />
-            <p>debug:{debug}</p>
-        </div>
+        <Tree
+        data={bTree}
+        orientation={'vertical'}
+        height={400}
+        width={400}
+        zoom={0.5}
+        collapsible={false}
+        depthFactor={100}
+        translate ={{x: 450, y: 10}}
+        renderCustomNodeElement={(rd3tProps) =>
+            renderForeignObjectNode({ ...rd3tProps, foreignObjectProps })
+        }
+        />
     );
 });
 
