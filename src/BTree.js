@@ -17,7 +17,8 @@ const BTree = forwardRef((props, ref) => {
         */
         return {
             insert: insertKey,
-            find: findKey
+            find: findKey,
+            delete: deleteKey,
         };
     })
 
@@ -254,6 +255,108 @@ const BTree = forwardRef((props, ref) => {
         if(tree[0].name != ''){
             await btreeSearch(tree, tree[0], key);
         }
+    }
+
+    const findPredecessor = (root, keyIndex) => {
+        let node = root.children[keyIndex];
+        while (!node.leaf) node = node.children.at(-1);
+        return node.keys.at(-1);
+    }
+
+    const findSuccessor = (root, keyIndex) => {
+        let node = root.children[keyIndex + 1]
+        while (!node.leaf) node = node.children[0];
+        return node.keys[0];
+    }
+
+    /**
+     * Merges the child in root located at keyIndex with its next sibling
+     */
+    const merge = (root, keyIndex) => {
+
+        const child = root.children[keyIndex];
+        const sibling = root.children[keyIndex + 1];
+
+        // Push key at keyIndex down into child
+        const key = root.keys[keyIndex];
+        child.keys.push(key);
+        root.keys.splice(keyIndex, 1);
+        root.name = createName(root.keys); // Update root name
+
+        // Must also splice root children array
+        root.children.splice(keyIndex + 1, 1);
+
+        // Append siblings' keys to end of child's keys
+        // If child is internal node, we also have to append children (of sibling)
+        child.keys.push(...sibling.keys);
+        if (!child.leaf) child.children.push(...sibling.children);
+        
+        // Update child name
+        child.name = createName(child.keys);
+
+    }
+
+    const deleteNodeKey = async (tree, root, key) => {
+
+        const keyIndex = root.keys.indexOf(key);
+        // If key index is not -1, root contains key
+
+        if (keyIndex !== -1) {
+
+            // Case 1 - node contains key and node is leaf
+            // We delete the key from the node
+            if (root.leaf) {
+                root.keys.splice(keyIndex, 1);
+                root.name = createName(root.keys); // Update root name
+            }
+
+            // Case 2 - node contains key and is internal node
+            // We first examine the child that precedes the key, and the child that succeeds the key.
+            // If one has at least t keys, we replace the key being deleted with the successor/predecessor,
+            // and recursively delete the successor/predecessor
+            // If both have less than t keys, than we merge them into a single node by pushing down
+            // the key we wish to delete. We then recursively delete the key.
+            else {
+
+                const leftChild = root.children[keyIndex];
+                const rightChild = root.children[keyIndex + 1];
+
+                // Examine left child
+                if (leftChild.keys.length >= degree) {
+                    const predecessor = findPredecessor(root, keyIndex);
+                    root.keys[keyIndex] = predecessor;
+                    deleteNodeKey(tree, leftChild, predecessor);
+                    // Update root name
+                    root.name = createName(root.keys);
+                }
+
+                // Examine right child
+                else if (rightChild.keys.length >= degree) {
+                    const successor = findSuccessor(root, keyIndex);
+                    root.keys[keyIndex] = successor;
+                    deleteNodeKey(tree, rightChild, successor);
+                    // Update root name
+                    root.name = createName(root.keys);
+                }
+                
+                // Merge
+                else {
+                    merge(root, keyIndex);
+                    deleteNodeKey(tree, root.children[keyIndex], key)
+                }
+            
+            }
+        
+        }
+
+    }
+
+    const deleteKey = async (deleteInput) => {
+        const key = parseInt(deleteInput);
+        const tree = bTree;
+        await deleteNodeKey(tree, tree[0], key);
+        updateNames(tree[0]);
+        setBTree([...tree]);
     }
 
     return (
