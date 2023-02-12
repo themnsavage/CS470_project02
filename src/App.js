@@ -47,6 +47,7 @@ function App() {
       inputRef.current.disable(true);
       if(deleteInput != ''){
         console.log(`delete input: ${deleteInput}`);
+        await bTreeRef.current.delete(deleteInput);
         await rbTreeRef.current.remove(deleteInput);
       }
       setDelete('');

@@ -7,9 +7,9 @@ const BTree = forwardRef((props, ref) => {
     const foreignObjectProps = { width: nodeSize.x, height: nodeSize.y, x: -44, y: -40 };
     // use state variables
     const [bTree, setBTree] = useState([{name:'', keys:[], leaf: true, children:[]}]);
-    const [degree, setDegree] = useState(2)
+    const [degree, setDegree] = useState(2);
     const [debug, setDebug] = useState('none');
-    const [animationSpeed, setAnimationSpeed] = useState(1500);
+    const [animationSpeed, setAnimationSpeed] = useState(1000);
 
     useImperativeHandle(ref, () => {
         /*
@@ -17,7 +17,8 @@ const BTree = forwardRef((props, ref) => {
         */
         return {
             insert: insertKey,
-            find: findKey
+            find: findKey,
+            delete: deleteKey,
         };
     })
 
@@ -83,8 +84,8 @@ const BTree = forwardRef((props, ref) => {
             name: '',
             color: 'white',
             leaf: l,
-            keys:[],
-            children: []
+            keys: [],
+            children: [],
         }
         return node;
     }
@@ -254,6 +255,232 @@ const BTree = forwardRef((props, ref) => {
         if(tree[0].name != ''){
             await btreeSearch(tree, tree[0], key);
         }
+    }
+
+    const findPredecessor = (root, keyIndex) => {
+        let node = root.children[keyIndex];
+        while (!node.leaf) node = node.children.at(-1);
+        return node.keys.at(-1);
+    }
+
+    const findSuccessor = (root, keyIndex) => {
+        let node = root.children[keyIndex + 1]
+        while (!node.leaf) node = node.children[0];
+        return node.keys[0];
+    }
+
+    /**
+     * Moves the last key of the child located at keyIndex - 1 into root,
+     * and inserts the replaced root value into the first position of the child at keyIndex
+     */
+    const borrowFromPrevious = (root, keyIndex) => {
+
+        const child = root.children[keyIndex];
+        const sibling = root.children[keyIndex - 1];
+
+        // Insert key into child
+        child.keys.splice(0, 0, root.keys[keyIndex - 1]); 
+
+        // Remove key from sibling and move to parent
+        root.keys[keyIndex - 1] = sibling.keys.pop();
+
+        // If child is internal node, we must also move child from sibling to child
+        if (!child.leaf) {
+            child.children.splice(0, 0, sibling.children.pop());
+        }
+
+        // Update names
+        root.name = createName(root.keys);
+        child.name = createName(child.keys);
+        sibling.name = createName(sibling.keys);
+
+    }
+
+    /**
+     * Moves the first key of the child located at keyIndex + 1 into root,
+     * and inserts the replaced root value into the last position of the child at keyIndex
+     */
+    const borrowFromNext = (root, keyIndex) => {
+
+        const child = root.children[keyIndex];
+        const sibling = root.children[keyIndex + 1];
+
+        // Insert key into child
+        child.keys.push(root.keys[keyIndex]); 
+
+        // Remove key from sibling and move to parent
+        root.keys[keyIndex] = sibling.keys.shift();
+
+        // If child is internal node, we must also move child from sibling to child
+        if (!child.leaf) {
+            child.children.push(sibling.children.shift());
+        }
+
+        // Update names
+        root.name = createName(root.keys);
+        child.name = createName(child.keys);
+        sibling.name = createName(sibling.keys);
+
+    }
+
+    /**
+     * Merges the child in root located at keyIndex with its next sibling
+     */
+    const merge = (root, keyIndex) => {
+
+        const child = root.children[keyIndex];
+        const sibling = root.children[keyIndex + 1];
+
+        // Push key at keyIndex down into child
+        const key = root.keys[keyIndex];
+        child.keys.push(key);
+        root.keys.splice(keyIndex, 1);
+
+        // Must also splice root children array
+        root.children.splice(keyIndex + 1, 1);
+
+        // Append siblings' keys to end of child's keys
+        // If child is internal node, we also have to append children (of sibling)
+        child.keys.push(...sibling.keys);
+        if (!child.leaf) child.children.push(...sibling.children);
+        
+        // Update names
+        root.name = createName(root.keys);
+        child.name = createName(child.keys);
+
+    }
+
+    const fill = async (tree, root, childIndex) => {
+
+        await animateNodeColor(tree, root.children[childIndex], "blue");
+
+        // If child is not first child and previous sibling has at least t keys,
+        // borrow a key from previous sibling
+        if (childIndex !== 0 && (root.children[childIndex - 1].keys.length >= degree)) {
+            borrowFromPrevious(root, childIndex);
+        }
+
+        // If child is not last child and next sibling has at least t keys,
+        // borrow a key from next sibling
+        else if (childIndex !== root.keys.length && (root.children[childIndex + 1].keys.length >= degree)) {
+            borrowFromNext(root, childIndex);
+        }
+
+        // Otherwise, merge child with its sibling
+        // If last child, merge with previous sibling.
+        // Otherwise, merge with next.
+        else {
+            if (childIndex !== (root.keys.length)) merge(root, childIndex);
+            else merge(root, childIndex - 1);
+        }
+
+    }
+
+    const deleteNodeKey = async (tree, root, key) => {
+
+        await animateNodeColor(tree, root, "green");
+
+        const keyIndex = root.keys.indexOf(key);
+        // If key index is not -1, root contains key
+
+        if (keyIndex !== -1) {
+
+            // Case 1 - node contains key and node is leaf
+            // We simply delete the key from the node
+            if (root.leaf) {
+                await animateNodeColor(tree, root, "red");
+                root.keys.splice(keyIndex, 1);
+                // Update name
+                root.name = createName(root.keys);
+            }
+
+            // Case 2 - node contains key and is internal node
+            // We first examine the child that precedes the key, and the child that succeeds the key.
+            // If one has at least t keys, we replace the key being deleted with the successor/predecessor,
+            // and recursively delete the successor/predecessor
+            // If both have less than t keys, than we merge them into a single node by pushing down
+            // the key we wish to delete. We then recursively delete the key.
+            else {
+
+                await animateNodeColor(tree, root, "red");
+
+                const leftChild = root.children[keyIndex];
+                const rightChild = root.children[keyIndex + 1];
+
+                // Examine left child
+                if (leftChild.keys.length >= degree) {
+                    const predecessor = findPredecessor(root, keyIndex);
+                    await deleteNodeKey(tree, leftChild, predecessor);
+                    // Update root key
+                    root.keys[keyIndex] = predecessor;
+                    root.name = createName(root.keys);
+                }
+
+                // Examine right child
+                else if (rightChild.keys.length >= degree) {
+                    const successor = findSuccessor(root, keyIndex);
+                    await deleteNodeKey(tree, rightChild, successor);
+                    // Update root key
+                    root.keys[keyIndex] = successor;
+                    root.name = createName(root.keys);
+                }
+                
+                // Merge
+                else {
+                    merge(root, keyIndex);
+                    await deleteNodeKey(tree, root.children[keyIndex], key)
+                }
+            
+            }
+        
+        }
+
+        else {
+
+            // Case 3 - node is not leaf and does NOT contain key
+            // (If node is leaf and doesn't contain key, the key is not in the tree.)
+            // Determine which subtree should contain key
+            if (!root.leaf) {
+
+                var childIndex = 0;
+                while (childIndex < root.keys.length && root.keys[childIndex] < key) {
+                    childIndex += 1;
+                }
+
+                const isLastChild = (childIndex === root.keys.length);
+
+                // If child has less than t keys, fill child
+                if (root.children[childIndex].keys.length < degree) {
+                    await fill(tree, root, childIndex);
+                }
+
+                if (isLastChild && (childIndex > root.keys.length)) {
+                    await deleteNodeKey(tree, root.children[childIndex - 1], key);
+                }
+                else {
+                    await deleteNodeKey(tree, root.children[childIndex], key);
+                }
+
+            }
+
+        }
+
+    }
+
+    const deleteKey = async (deleteInput) => {
+
+        const key = parseInt(deleteInput);
+        const tree = bTree;
+
+        await deleteNodeKey(tree, tree[0], key);
+
+        // If root has zero keys and is not a leaf, (i.e. two children merged)
+        // then we update the root of the root to be the current root's child.
+        if (tree[0].keys.length === 0 && !tree[0].leaf) {
+            tree[0] = tree[0].children[0];
+        }
+
+        setBTree([...tree]);
     }
 
     return (
