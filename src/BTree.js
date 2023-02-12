@@ -278,14 +278,16 @@ const BTree = forwardRef((props, ref) => {
         const child = root.children[keyIndex];
         const sibling = root.children[keyIndex - 1];
 
+        console.log("Borrowing from:", sibling);
+
         // Insert key into child
         child.keys.splice(0, 0, root.keys[keyIndex - 1]); 
 
         // Remove key from sibling and move to parent
         root.keys[keyIndex - 1] = sibling.keys.pop();
 
-        // If child is leaf, we must also move child from sibling to child
-        if (child.leaf) {
+        // If child is internal node, we must also move child from sibling to child
+        if (!child.leaf) {
             child.children.splice(0, 0, sibling.children.pop());
         }
 
@@ -300,14 +302,16 @@ const BTree = forwardRef((props, ref) => {
         const child = root.children[keyIndex];
         const sibling = root.children[keyIndex + 1];
 
+        console.log("Borrowing from:", sibling);
+
         // Insert key into child
         child.keys.push(root.keys[keyIndex]); 
 
         // Remove key from sibling and move to parent
         root.keys[keyIndex] = sibling.keys.shift();
 
-        // If child is leaf, we must also move child from sibling to child
-        if (child.leaf) {
+        // If child is internal node, we must also move child from sibling to child
+        if (!child.leaf) {
             child.children.push(sibling.children.shift());
         }
 
@@ -340,26 +344,28 @@ const BTree = forwardRef((props, ref) => {
 
     }
 
-    const fill = (root, keyIndex) => {
+    const fill = (root, childIndex) => {
+
+        console.log("Filling:", root);
 
         // If child is not first child and previous sibling has at least t keys,
         // borrow a key from previous sibling
-        if (keyIndex !== 0 && root.children[keyIndex - 1].keys.length >= degree) {
-            borrowFromPrevious(root, keyIndex);
+        if (childIndex !== 0 && (root.children[childIndex - 1].keys.length >= degree)) {
+            borrowFromPrevious(root, childIndex);
         }
 
         // If child is not last child and next sibling has at least t keys,
         // borrow a key from next sibling
-        if (keyIndex !== (root.keys.length)) {
-            borrowFromNext(root, keyIndex);
+        else if (childIndex !== root.keys.length && (root.children[childIndex + 1].keys.length >= degree)) {
+            borrowFromNext(root, childIndex);
         }
 
         // Otherwise, merge child with its sibling
         // If last child, merge with previous sibling.
         // Otherwise, merge with next.
         else {
-            if (keyIndex !== (root.keys.length)) merge(root, keyIndex);
-            else merge(root, keyIndex - 1);
+            if (childIndex !== (root.keys.length)) merge(root, childIndex);
+            else merge(root, childIndex - 1);
         }
 
     }
@@ -450,9 +456,18 @@ const BTree = forwardRef((props, ref) => {
     }
 
     const deleteKey = async (deleteInput) => {
+
         const key = parseInt(deleteInput);
         const tree = bTree;
+
         await deleteNodeKey(tree, tree[0], key);
+
+        // If root has a single child (i.e. previously had two children and merged),
+        // then we update the root of the root to be the current root's child.
+        if (tree[0].keys.length === 0) {
+            tree[0] = tree[0].children[0];
+        }
+
         updateNames(tree[0]);
         setBTree([...tree]);
     }
