@@ -3,10 +3,10 @@ import Tree from 'react-d3-tree';
 
 const VanEmdeTree = forwardRef((props, ref) => {
     const nullNode = 'NULL';
-    const nodeSize = { x: 120, y: 200 };
-    const foreignObjectProps = { width: nodeSize.x, height: nodeSize.y, x: -60, y: -50 };
+    const nodeSize = { x: 130, y: 200 };
+    const foreignObjectProps = { width: nodeSize.x, height: nodeSize.y, x: -65, y: -50 };
 
-    const [vanEmdeTree, setVanEmdeTree] = useState([{name:'', u:2, min:0, max:-1,count:0, children:[]}]);
+    const [vanEmdeTree, setVanEmdeTree] = useState([{name:'', u:16, faux:2, min:0, max:-1,count:0, children:[]}]);
     const [animationSpeed, setAnimationSpeed] = useState(1500);
 
     
@@ -41,7 +41,7 @@ const VanEmdeTree = forwardRef((props, ref) => {
         node.color = 'white';
         setVanEmdeTree([...tree]);
     }
-    
+
     const high = async (v, k) => {
         var tree = v;
         var x = Math.ceil(Math.sqrt(tree[0].u));
@@ -55,190 +55,166 @@ const VanEmdeTree = forwardRef((props, ref) => {
         return (k % x);
     }
 
+    const highR = async (v, k) => {
+        var tree = v;
+        var x = Math.ceil(Math.sqrt(tree.u));
+        console.log(k + ' going to index ' + Math.floor(k / x) + ' because tree[0].u = ' + tree.u);
+        return Math.floor(k / x);
+    }
+
+    const lowR = async (v, k) => {
+        var tree = v;
+        var x = Math.ceil(Math.sqrt(tree.u));
+        return (k % x);
+    }
+
     const index = async (v, k, kk) => {
         var tree = v;
         return ((k * Math.floor(Math.sqrt(tree[0].u))) + kk);
     }
 
-
-    const updateNames = (root) => {
-        /*
-            description: updates the name of cur node
-            root(object): root node
-        */
-        root.name = 'u: ' + `${root.u}` + ', min: ' + `${root.min}` + ', max: ' + `${root.max}`;
-
-    }
-
-    const insertRecursive = async (v, newKey) => {
-        /*
-            description: inserting lower than the root
-            newKey(int): the new key to insert to VanEmdeTree
-        */
-        // var w = vanEmdeTree;
-        // await animateNodeColor(w, w[0], 'green');
+    const initializeTree = async (tree) => {
         
-        newKey = parseInt(newKey);
-        var tree = vanEmdeTree;
-        var root = v;
-        await animateNodeColor(tree, root, 'green');
-
-        //if tree is empty
-        if (root.min > root.max) {
-            // tree.max = newKey;
-            // tree.min = tree.max;
-            var newNode = {name: newKey, color:'white', u:2, min:newKey, max:newKey, count: 1, children: []};
-            root = newNode;
-            root.name = 'u: ' + `${root.u}` + ', min: ' + `${root.min}` + ', max: ' + `${root.max}`;
-            v.name = root.name;
-            await animateNodeColor(tree, v, 'yellow');
-        } 
-        else {
-            //resize tree
-            v.count++;
-            if (v.count > v.u) {
-                v.u = Math.pow(v.u,2);
-            }
- 
-            //if key is new tree.min, instead of newKey insert old min in subtrees
-            //set newKey as new tree.min
-            if (newKey < v.min) {
-                var temp = v.min;
-                v.min = newKey;
-                newKey = temp;
-                updateNames(v);
-                await animateNodeColor(tree, v, 'green');
-            }
-
-            //since tree.max is also stored in subtrees, no need to swap
-            if (newKey > v.max) {
-                v.max = newKey;
-                updateNames(v);
-                await animateNodeColor(tree, v, 'green');
-            }
-
-            //if at lowest vEB, i.e. the leaf tree
-            if (v.u === 2) {
-                v.max = newKey;
-                updateNames(v);
-                await animateNodeColor(tree, v, 'green');
-            } else {
-                var i = await high(tree, newKey);
-                var j = await low(tree, newKey);
-
-                var n = Math.sqrt(v.u);
-
-                var curNode = v;
-                var prevNode = null;
-                await animateNodeColor(tree, curNode, 'green');
-
+        for (var i = 0; i < 4; i++) {
+            var newNode = {name:j, u:4, faux:2, min:'16', max:'-1',count:0, children:[]};
+            newNode.name = 'u: ' + `${newNode.u}` + ', min: ' + '/' + ', max: ' + '/';
+            tree[0].children.push(newNode);
             
 
-
-                if(typeof v.children[i] === 'undefined') {
-
-                    if (v.children.length-1 < i) {
-                        for(var k = v.children.length; k < i+1; k++) {
-                            v.children[k] = ({name: '', u:n, min:0, max:-1, count:0, children: []});
-                            curNode = v.children[k];
-                            curNode.name = 'u: ' + `${curNode.u}` + ', min: ' + `${curNode.min}` + ', max: ' + `${curNode.max}`;
-                            await animateNodeColor(tree, curNode, 'purple');
-                        }
-                    }
-
-                }
-
-                curNode = v.children[i];
-                await animateNodeColor(tree, curNode, 'orange');
-
-                // await animateNodeColor(tree[0].children[i], tree[0].children[i][0], 'orange');
-                await insertRecursive(v.children, j);
+            for(var j = 0; j < 2; j++) {
+                console.log('child ' + i + 'getting child ' + j);
+                newNode = {name:j, u:2, faux:2, min:'16', max:'-1',count:0, children:[]};
+                newNode.name = 'u: ' + `${newNode.u}` + ', min: ' + '/' + ', max: ' + '/';
+                tree[0].children[i].children.push(newNode);
+                // console.log('this min is ' + tree[0].children[i].children[j].min);
             }
-            
         }
     }
 
-    const insertKey = async (newKey) => {
+    const insertRecursive = async (root, newKey) => {
         /*
             description: insert new key
             newKey(string): the new key to insert to VanEmdeTree
         */
         newKey = parseInt(newKey);
-        var tree = vanEmdeTree;
-        var root = tree[0];
 
-        //if tree is empty
+        var tree = vanEmdeTree;
+
+        // console.log('root min is ' + root.min);
+        // if tree is empty
         if (root.min > root.max) {
             // tree.max = newKey;
             // tree.min = tree.max;
-            var newNode = {name: newKey, color:'white', u:2, min:newKey, max:newKey, count: 1, children: []};
-            tree[0] = newNode;
-            updateNames(tree[0]);
-            await animateNodeColor(tree, tree[0], 'yellow');
-        } 
-        else {
-            //resize tree
-            tree[0].count++;
-            if (tree[0].count > tree[0].u) {
-                tree[0].u = Math.pow(tree[0].u,2);
-            }
- 
+            // var newNode = {name:'null', u:16, faux:2, min:newKey, max:newKey, count: 1, children: []};
+            // newNode.name = 'u: ' + `${newNode.u}` + ', min: ' + `${newNode.min}` + ', max: ' + `${newNode.max}`;
+            root.min = newKey;
+            root.max = newKey;
+            root.name = 'u: ' + `${root.u}` + ', min: ' + `${root.min}` + ', max: ' + `${root.max}`;
+            // updateNames(root);
+            await animateNodeColor(tree, root, 'green');
+            await animateNodeColor(tree, root, 'yellow');
+        } else {
             //if key is new tree.min, instead of newKey insert old min in subtrees
             //set newKey as new tree.min
-            if (newKey < tree[0].min) {
-                var temp = tree[0].min;
-                tree[0].min = newKey;
+            if (newKey < root.min) {
+                var temp = root.min;
+                root.min = newKey;
                 newKey = temp;
-                updateNames(tree[0]);
-                await animateNodeColor(tree, tree[0], 'green');
+                root.name = 'u: ' + `${root.u}` + ', min: ' + `${root.min}` + ', max: ' + `${root.max}`;
+                await animateNodeColor(tree, root, 'green');
             }
 
-            //since tree.max is also stored in subtrees, no need to swap
-            if (newKey > tree[0].max) {
-                tree[0].max = newKey;
-                updateNames(tree[0]);
-                await animateNodeColor(tree, tree[0], 'green');
+            // since tree.max is also stored in subtrees, no need to swap
+            if (newKey > root.max) {
+                root.max = newKey;
+                root.name = 'u: ' + `${root.u}` + ', min: ' + `${root.min}` + ', max: ' + `${root.max}`;
+                await animateNodeColor(tree, root, 'green');
             }
 
-            //if at lowest vEB, i.e. the leaf tree
-            if (tree[0].u === 2) {
-                tree[0].max = newKey;
-                updateNames(tree[0]);
-                await animateNodeColor(tree, tree[0], 'green');
+            if (root.u == 2) {
+                root.max = newKey;
+                root.name = 'u: ' + `${root.u}` + ', min: ' + `${root.min}` + ', max: ' + `${root.max}`;
+                await animateNodeColor(tree, root, 'green');
             } else {
-                var i = await high(tree, newKey);
-                var j = await low(tree, newKey);
+                var i = await highR(root, newKey);
+                var j = await lowR(root, newKey);
 
-                var n = Math.sqrt(tree[0].u);
+                await insertRecursive(root.children[i], j);
+            }
+        }
 
-                var curNode = tree[0];
-                var prevNode = null;
-                await animateNodeColor(tree, curNode, 'green');
+        setVanEmdeTree([...tree]);
+    }
+    
+    
+    
+    
+    
+    const insertKey = async (newKey) => {
+        /*
+            description: insert new key
+            newKey(string): the new key to insert to VanEmdeTree
+        */
 
-            
+        var tree = vanEmdeTree;
+        if (tree[0].count === 0) {
+            var newNode = {name:'null', u:16, faux:2, min:newKey, max:newKey,count:0, children:[]};
+            newNode.name = 'u: ' + `${newNode.u}` + ', min: ' + `${newNode.min}` + ', max: ' + `${newNode.max}`;
+            tree[0] = newNode;
+            tree[0].count = 1;
+            initializeTree(tree);
+            await animateNodeColor(tree, tree[0], 'green');
+            await animateNodeColor(tree, tree[0], 'yellow');
+        } else {
+            newKey = parseInt(newKey);
 
-
-                if(typeof tree[0].children[i] === 'undefined') {
-
-                    if (tree[0].children.length-1 < i) {
-                        for(var k = tree[0].children.length; k < i+1; k++) {
-                            tree[0].children[k] = ({name: '', u:n, min:0, max:-1, count:0, children: []});
-                            curNode = tree[0].children[k];
-                            curNode.name = 'u: ' + `${curNode.u}` + ', min: ' + `${curNode.min}` + ', max: ' + `${curNode.max}`;
-                            await animateNodeColor(tree, curNode, 'purple');
-                        }
-                    }
-
+            // if tree is empty
+            if (tree[0].min > tree[0].max) {
+                // tree.max = newKey;
+                // tree.min = tree.max;
+                var newNode = {name:'null', u:16, faux:2, min:newKey, max:newKey, count: 1, children: []};
+                newNode.name = 'u: ' + `${newNode.u}` + ', min: ' + `${newNode.min}` + ', max: ' + `${newNode.max}`;
+                tree[0] = newNode;
+                // updateNames(tree[0]);
+                await animateNodeColor(tree, tree[0], 'green');
+                await animateNodeColor(tree, tree[0], 'yellow');
+            } else {
+                //if key is new tree.min, instead of newKey insert old min in subtrees
+                //set newKey as new tree.min
+                if (newKey < tree[0].min) {
+                    var temp = tree[0].min;
+                    tree[0].min = newKey;
+                    newKey = temp;
+                    tree[0].name = 'u: ' + `${tree[0].u}` + ', min: ' + `${tree[0].min}` + ', max: ' + `${tree[0].max}`;
+                    await animateNodeColor(tree, tree[0], 'green');
                 }
 
-                curNode = tree[0].children[i];
-                await animateNodeColor(tree, curNode, 'orange');
+                // since tree.max is also stored in subtrees, no need to swap
+                if (newKey > tree[0].max) {
+                    tree[0].max = newKey;
+                    tree[0].name = 'u: ' + `${tree[0].u}` + ', min: ' + `${tree[0].min}` + ', max: ' + `${tree[0].max}`;
+                    await animateNodeColor(tree, tree[0], 'green');
+                }
 
-                // await animateNodeColor(tree[0].children[i], tree[0].children[i][0], 'orange');
-                await insertRecursive(curNode, j);
+                if (tree[0].u == 2) {
+                    tree[0].max = newKey;
+                    tree[0].name = 'u: ' + `${tree[0].u}` + ', min: ' + `${tree[0].min}` + ', max: ' + `${tree[0].max}`;
+                    await animateNodeColor(tree, tree[0], 'green');
+                } else {
+                    var i = await high(tree, newKey);
+                    var j = await low(tree, newKey);
+
+                    var curNode = tree[0].children[i];
+
+                    // console.log(' is ' + i);
+
+                    await insertRecursive(curNode, j);
+                }
             }
-            
         }
+
+
+        
 
         setVanEmdeTree([...tree]);
     }
@@ -248,10 +224,10 @@ const VanEmdeTree = forwardRef((props, ref) => {
         data={vanEmdeTree}
         orientation={'vertical'}
         height={400}
-        width={400}
+        width={800}
         zoom={0.5}
         collapsible={false}
-        depthFactor={120}
+        depthFactor={100}
         translate ={{x: 450, y: 10}}
         renderCustomNodeElement={(rd3tProps) =>
             renderForeignObjectNode({ ...rd3tProps, foreignObjectProps })

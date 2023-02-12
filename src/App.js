@@ -86,6 +86,7 @@ function App() {
       <h2>B-Tree:</h2>
       <BTree ref={bTreeRef}/> */}
       <h2>van Emde Boas Tree:</h2>
+      <p>range is 0-15</p>
       <VanEmdeTree ref={vanEmdeTreeRef}/>
     </div>
   );
