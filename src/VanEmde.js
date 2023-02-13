@@ -11,7 +11,7 @@ const VanEmdeTree = forwardRef((props, ref) => {
 
     
     useImperativeHandle(ref, () => {
-        return {insert: insertKey, delete: removeKey};
+        return {insert: insertKey, delete: removeKey, find: findKey};
     });
 
     const renderForeignObjectNode = ({
@@ -42,6 +42,7 @@ const VanEmdeTree = forwardRef((props, ref) => {
         setVanEmdeTree([...tree]);
     }
 
+    //get cluster
     const high = async (v, k) => {
         var tree = v;
         var x = Math.ceil(Math.sqrt(tree[0].u));
@@ -52,6 +53,7 @@ const VanEmdeTree = forwardRef((props, ref) => {
         return Math.floor(k / x);
     }
 
+    //get spot in cluster
     const low = async (v, k) => {
         var tree = v;
         var x = Math.ceil(Math.sqrt(tree[0].u));
@@ -59,6 +61,7 @@ const VanEmdeTree = forwardRef((props, ref) => {
         return (k % x);
     }
 
+    //all R functions are so a different root can be passed in
     const highR = async (v, k) => {
         var tree = v;
         var x = Math.ceil(Math.sqrt(tree.u));
@@ -75,6 +78,7 @@ const VanEmdeTree = forwardRef((props, ref) => {
         return (k % x);
     }
 
+    //get val in cluster
     const index = async (v, k, kk) => {
         var tree = v;
         console.log('tree[0].u = ' + tree[0].u);
@@ -120,6 +124,7 @@ const VanEmdeTree = forwardRef((props, ref) => {
         }
     }
 
+    //function to improve runtime by taking out name updates
     const insertSummary = async (root, newKey) => {
         newKey = parseInt(newKey);
 
@@ -128,16 +133,9 @@ const VanEmdeTree = forwardRef((props, ref) => {
         // console.log('root min is ' + root.min);
         // if tree is empty
         if (root.min > root.max) {
-            // tree.max = newKey;
-            // tree.min = tree.max;
-            // var newNode = {name:'null', u:16, faux:2, min:newKey, max:newKey, count: 1, children: []};
-            // newNode.name = 'u: ' + `${newNode.u}` + ', min: ' + `${newNode.min}` + ', max: ' + `${newNode.max}`;
             root.min = newKey;
             root.max = newKey;
             root.name = 'u: ' + `${root.u}` + ', min: ' + `${root.min}` + ', max: ' + `${root.max}`;
-            // updateNames(root);
-            // await animateNodeColor(tree, root, 'green');
-            // await animateNodeColor(tree, root, 'yellow');
         } else {
             //if key is new tree.min, instead of newKey insert old min in subtrees
             //set newKey as new tree.min
@@ -177,6 +175,7 @@ const VanEmdeTree = forwardRef((props, ref) => {
         }
     }
 
+    //another function so different roots can be passed in
     const insertRecursive = async (root, newKey) => {
         /*
             description: insert new key
@@ -186,13 +185,8 @@ const VanEmdeTree = forwardRef((props, ref) => {
 
         var tree = vanEmdeTree;
 
-        // console.log('root min is ' + root.min);
         // if tree is empty
         if (root.min > root.max) {
-            // tree.max = newKey;
-            // tree.min = tree.max;
-            // var newNode = {name:'null', u:16, faux:2, min:newKey, max:newKey, count: 1, children: []};
-            // newNode.name = 'u: ' + `${newNode.u}` + ', min: ' + `${newNode.min}` + ', max: ' + `${newNode.max}`;
             root.min = newKey;
             root.max = newKey;
             root.name = 'u: ' + `${root.u}` + ', min: ' + `${root.min}` + ', max: ' + `${root.max}`;
@@ -331,6 +325,7 @@ const VanEmdeTree = forwardRef((props, ref) => {
         setVanEmdeTree([...tree]);
     }
 
+    //took out animations to improve runtime
     const removeSummary = async (v, key) => {
         
         if(v.min > v.max) {
@@ -343,9 +338,7 @@ const VanEmdeTree = forwardRef((props, ref) => {
         if (v.min === v.max) {
             v.min = 16;
             v.max = -1;
-            // tree[0].name = 'u: ' + `${tree[0].u}` + ', min: ' + `${tree[0].min}` + ', max: ' + `${tree[0].max}`;
             v.name = 'u: ' + `${v.u}` + ', min: ' + '/' + ', max: ' + '/';
-            // await animateNodeColor(tree, v, 'red');
 
         } else {
             //if leaf
@@ -360,7 +353,6 @@ const VanEmdeTree = forwardRef((props, ref) => {
                         v.name = 'u: ' + `${v.u}` + ', min: ' + `${v.min}` + ', max: ' + `${v.max}`;
                         
                     }
-                    // await animateNodeColor(tree, v, 'red');
 
                 } else {
                     if (v.max === 0) {
@@ -373,7 +365,6 @@ const VanEmdeTree = forwardRef((props, ref) => {
                         v.min = 1;
                         v.name = 'u: ' + `${v.u}` + ', min: ' + `${v.min}` + ', max: ' + `${v.max}`;
                     }
-                    // await animateNodeColor(tree, v, 'red');
                 }
             } else {
                 //if k is T.min, assign new value to it and return since min is not
@@ -382,16 +373,7 @@ const VanEmdeTree = forwardRef((props, ref) => {
                     console.log('var i = ' + i);
                     v.min = await indexR(v, i, v.children[i].min);
                     v.name = 'u: ' + `${v.u}` + ', min: ' + `${v.min}` + ', max: ' + `${v.max}`;
-                    // await animateNodeColor(tree, v, 'red');
                 } else {
-                    // int i = high(k);
-                    // int j = low(k);
-
-                    // children[i]->remove(j);
-
-                    // if(children[i]->min > children[i]->max){
-                    //     summary->remove(i);
-                    // }
 
                     var i = await highR(v, key);
                     var j = await lowR(v, key);
@@ -406,13 +388,6 @@ const VanEmdeTree = forwardRef((props, ref) => {
                     }
 
                     if (key === v.max) {
-                        // if(summary->min > summary->max){
-                        //     max = min;
-                        // }
-                        // else{
-                        //     i = summary->min;
-                        //     max = index(i, children[i]->max);
-                        // }
 
                         if (v.summary.min > v.summary.max) {
                             v.max = v.min;
@@ -420,8 +395,6 @@ const VanEmdeTree = forwardRef((props, ref) => {
                             i = v.summary.min;
                             v.max = indexR(v, i, v.children[i].max);
                         }
-                        
-                        // await animateNodeColor(tree, v, 'red');
                     }
                     v.name = 'u: ' + `${v.u}` + ', min: ' + `${v.min}` + ', max: ' + `${v.max}`;
                 }
@@ -435,6 +408,7 @@ const VanEmdeTree = forwardRef((props, ref) => {
         setVanEmdeTree([...tree]);
     }
 
+    //another function so different roots can be passed in
     const removeRecursive = async (v, key) => {
 
         var tree = vanEmdeTree;
@@ -490,15 +464,6 @@ const VanEmdeTree = forwardRef((props, ref) => {
                     v.name = 'u: ' + `${v.u}` + ', min: ' + `${v.min}` + ', max: ' + `${v.max}`;
                     await animateNodeColor(tree, v, 'red');
                 } else {
-                    // int i = high(k);
-                    // int j = low(k);
-
-                    // children[i]->remove(j);
-
-                    // if(children[i]->min > children[i]->max){
-                    //     summary->remove(i);
-                    // }
-
                     var i = await highR(v, key);
                     var j = await lowR(v, key);
 
@@ -511,19 +476,13 @@ const VanEmdeTree = forwardRef((props, ref) => {
                     }
 
                     if (key === v.max) {
-                        // if(summary->min > summary->max){
-                        //     max = min;
-                        // }
-                        // else{
-                        //     i = summary->min;
-                        //     max = index(i, children[i]->max);
-                        // }
-
                         if (v.summary.min > v.summary.max) {
                             v.max = v.min;
+                            v.name = 'u: ' + `${v.u}` + ', min: ' + `${v.min}` + ', max: ' + `${v.max}`;
                         } else {
                             i = v.summary.min;
                             v.max = indexR(v, i, v.children[i].max);
+                            v.name = 'u: ' + `${v.u}` + ', min: ' + `${v.min}` + ', max: ' + `${v.max}`;
                         }
                         
                         await animateNodeColor(tree, v, 'red');
@@ -531,11 +490,11 @@ const VanEmdeTree = forwardRef((props, ref) => {
                 }
 
             }
-            v.name = 'u: ' + `${v.u}` + ', min: ' + `${v.min}` + ', max: ' + `${v.max}`;
+            
             
             
         }
-        v.name = 'u: ' + `${v.u}` + ', min: ' + `${v.min}` + ', max: ' + `${v.max}`;
+        
 
 
         setVanEmdeTree([...tree]);
@@ -601,14 +560,6 @@ const VanEmdeTree = forwardRef((props, ref) => {
                     tree[0].name = 'u: ' + `${tree[0].u}` + ', min: ' + `${tree[0].min}` + ', max: ' + `${tree[0].max}`;
                     await animateNodeColor(tree, tree[0], 'red');
                 }
-                // int i = high(k);
-                // int j = low(k);
-
-                // children[i]->remove(j);
-
-                // if(children[i]->min > children[i]->max){
-                //     summary->remove(i);
-                // }
 
                 var i = await high(tree, key);
                 var j = await low(tree, key);
@@ -623,19 +574,13 @@ const VanEmdeTree = forwardRef((props, ref) => {
                 }
 
                 if (key === tree[0].max) {
-                    // if(summary->min > summary->max){
-                    //     max = min;
-                    // }
-                    // else{
-                    //     i = summary->min;
-                    //     max = index(i, children[i]->max);
-                    // }
-
                     if (tree[0].summary.min > tree[0].summary.max) {
                         tree[0].max = tree[0].min;
+                        tree[0].name = 'u: ' + `${tree[0].u}` + ', min: ' + `${tree[0].min}` + ', max: ' + `${tree[0].max}`;
                     } else {
                         i = tree[0].summary.min;
                         tree[0].max = index(tree, i, tree[0].children[i].max);
+                        tree[0].name = 'u: ' + `${tree[0].u}` + ', min: ' + `${tree[0].min}` + ', max: ' + `${tree[0].max}`;
                     }
                     
                     await animateNodeColor(tree, tree[0], 'red');
@@ -646,10 +591,12 @@ const VanEmdeTree = forwardRef((props, ref) => {
             
             
         }
-        tree[0].name = 'u: ' + `${tree[0].u}` + ', min: ' + `${tree[0].min}` + ', max: ' + `${tree[0].max}`;
-
 
         setVanEmdeTree([...tree]);
+    }
+
+    const findKey = async (key) => {
+
     }
 
     return (
