@@ -99,8 +99,8 @@ function App() {
       </div>
       <h1>Inputs:</h1>
       <Inputs setInsert={setInsert} setDelete={setDelete} setFind={setFind} ref={inputRef}/>
-      {/* <h2>Binary Tree:</h2>
-      <BinaryTree ref={binaryTreeRef}/> */}
+      <h2>Binary Tree:</h2>
+      <BinaryTree ref={binaryTreeRef}/>
       <h2>B-Tree:</h2>
       <BTree ref={bTreeRef}/>
       <h2>RB-Tree:</h2>
