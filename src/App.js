@@ -47,6 +47,8 @@ function App() {
       inputRef.current.disable(true);
       if(deleteInput != ''){
         console.log(`delete input: ${deleteInput}`);
+
+        await vanEmdeTreeRef.current.delete(deleteInput);
       }
       setDelete('');
       inputRef.current.disable(false);
@@ -86,7 +88,8 @@ function App() {
       <h2>B-Tree:</h2>
       <BTree ref={bTreeRef}/> */}
       <h2>van Emde Boas Tree:</h2>
-      <p>range is 0-15</p>
+      <p>range is 0-15 :: no duplicate entries
+      </p>
       <VanEmdeTree ref={vanEmdeTreeRef}/>
     </div>
   );
