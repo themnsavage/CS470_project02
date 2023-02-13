@@ -65,7 +65,7 @@ function App() {
       inputRef.current.disable(true);
       if(findInput != ''){
         console.log(`find input: ${findInput}`);
-        // await bTreeRef.current.find(findInput);
+        await vanEmdeTreeRef.current.find(findInput);
       }
       setFind('');
       inputRef.current.disable(false);

@@ -595,8 +595,89 @@ const VanEmdeTree = forwardRef((props, ref) => {
         setVanEmdeTree([...tree]);
     }
 
-    const findKey = async (key) => {
+    const findRecursive = async (v, key) => {
+        key = parseInt(key);
+        
+        var tree = vanEmdeTree;
 
+        if (key >= 16 || key < 0) {
+            console.log("index out of vanEmde bounds");
+            return;
+        }
+
+        if (key === v.min) {
+            // console.log('in the if');
+            await animateNodeColor(tree, v, 'green');
+            v.name = 'found';
+            await animateNodeColor(tree, v, 'yellow');
+            v.name = 'u: ' + `${v.u}` + ', min: ' + `${v.min}` + ', max: ' + `${v.max}`;
+        } else if (key === v.max) {
+            // console.log('in the if');
+            await animateNodeColor(tree, v, 'green');
+            v.name = 'found';
+            await animateNodeColor(tree, v, 'yellow');
+            v.name = 'u: ' + `${v.u}` + ', min: ' + `${v.min}` + ', max: ' + `${v.max}`;
+        } else if (key < v.min || key > v.max) {
+            await animateNodeColor(tree, v, 'green');
+            v.name = 'not in tree';
+            await animateNodeColor(tree, v, 'red');
+            v.name = 'u: ' + `${v.u}` + ', min: ' + `${v.min}` + ', max: ' + `${v.max}`;
+        } else {
+            var i = await highR(v, key);
+            var j = await lowR(v, key);
+
+            var curNode = v.children[i];
+
+            // console.log(' is ' + i);
+            await animateNodeColor(tree, v, 'green');
+
+            await findRecursive(curNode, j);
+
+
+        }
+
+    }
+    
+    
+    const findKey = async (key) => {
+        key = parseInt(key);
+        
+        var tree = vanEmdeTree;
+
+        if (key >= 16 || key < 0) {
+            console.log("index out of vanEmde bounds");
+            return;
+        }
+
+        if (key === tree[0].min) {
+            // console.log('in the if');
+            await animateNodeColor(tree, tree[0], 'green');
+            tree[0].name = 'found';
+            await animateNodeColor(tree, tree[0], 'yellow');
+            tree[0].name = 'u: ' + `${tree[0].u}` + ', min: ' + `${tree[0].min}` + ', max: ' + `${tree[0].max}`;
+        } else if (key === tree[0].max) {
+            // console.log('in the if');
+            await animateNodeColor(tree, tree[0], 'green');
+            tree[0].name = 'found';
+            await animateNodeColor(tree, tree[0], 'yellow');
+            tree[0].name = 'u: ' + `${tree[0].u}` + ', min: ' + `${tree[0].min}` + ', max: ' + `${tree[0].max}`;
+        } else if (key < tree[0].min || key > tree[0].max) {
+            await animateNodeColor(tree, tree[0], 'green');
+            tree[0].name = 'not in tree';
+            await animateNodeColor(tree, tree[0], 'red');
+            tree[0].name = 'u: ' + `${tree[0].u}` + ', min: ' + `${tree[0].min}` + ', max: ' + `${tree[0].max}`;
+        } else {
+            var i = await high(tree, key);
+            var j = await low(tree, key);
+
+            var curNode = tree[0].children[i];
+
+            // console.log(' is ' + i);
+            await animateNodeColor(tree, tree[0], 'green');
+            await findRecursive(curNode, j);
+        }
+
+        setVanEmdeTree([...tree]);
     }
 
     return (
