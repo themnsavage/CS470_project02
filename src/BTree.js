@@ -8,7 +8,6 @@ const BTree = forwardRef((props, ref) => {
     // use state variables
     const [bTree, setBTree] = useState([{name:'', keys:[], leaf: true, children:[]}]);
     const [degree, setDegree] = useState(2);
-    const [debug, setDebug] = useState('none');
     const [animationSpeed, setAnimationSpeed] = useState(1000);
 
     useImperativeHandle(ref, () => {
