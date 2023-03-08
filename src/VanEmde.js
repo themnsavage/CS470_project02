@@ -9,11 +9,12 @@ const VanEmdeTree = forwardRef((props, ref) => {
     const [vanEmdeTree, setVanEmdeTree] = useState([{name:'', u:16, faux:2, min:0, max:-1,count:0, summary:[],children:[]}]);
     const [animationSpeed, setAnimationSpeed] = useState(1500);
 
-    
+    // exposed functions that app.js can use
     useImperativeHandle(ref, () => {
         return {insert: insertKey, delete: removeKey, find: findKey};
     });
 
+    // custom node
     const renderForeignObjectNode = ({
         nodeDatum,
         toggleNode,
@@ -30,10 +31,15 @@ const VanEmdeTree = forwardRef((props, ref) => {
         </g>
       );
 
+    // define a sleep function
     const sleep =  async () => {
         return new Promise(resolve => setTimeout(resolve, animationSpeed));
     }
 
+    // animate the color of the node
+    // tree: ref to tree that is passed through
+    // node: node we are animating
+    // color: color we change node to
     const animateNodeColor = async (tree, node, color='green') => {
         node.color = color;
         setVanEmdeTree([...tree]);
@@ -43,6 +49,8 @@ const VanEmdeTree = forwardRef((props, ref) => {
     }
 
     //get cluster
+    // v: tree
+    // k: key
     const high = async (v, k) => {
         var tree = v;
         var x = Math.ceil(Math.sqrt(tree[0].u));
@@ -54,6 +62,8 @@ const VanEmdeTree = forwardRef((props, ref) => {
     }
 
     //get spot in cluster
+    // v: tree
+    // k: key
     const low = async (v, k) => {
         var tree = v;
         var x = Math.ceil(Math.sqrt(tree[0].u));
@@ -62,6 +72,10 @@ const VanEmdeTree = forwardRef((props, ref) => {
     }
 
     //all R functions are so a different root can be passed in
+
+    //get cluster
+    // v: tree
+    // k: key
     const highR = async (v, k) => {
         var tree = v;
         var x = Math.ceil(Math.sqrt(tree.u));
@@ -72,6 +86,9 @@ const VanEmdeTree = forwardRef((props, ref) => {
         return Math.floor(k / x);
     }
 
+    //get spot in cluster
+    // v: tree
+    // k: key
     const lowR = async (v, k) => {
         var tree = v;
         var x = Math.ceil(Math.sqrt(tree.u));
@@ -79,18 +96,27 @@ const VanEmdeTree = forwardRef((props, ref) => {
     }
 
     //get val in cluster
+    // v: tree
+    // k: key
+    // kk: offset
     const index = async (v, k, kk) => {
         var tree = v;
         console.log('tree[0].u = ' + tree[0].u);
         return ((k * Math.floor(Math.sqrt(tree[0].u))) + kk);
     }
 
+    //get val in cluster
+    // v: tree
+    // k: key
+    // kk: offset
     const indexR = async (v, k, kk) => {
         var tree = v;
         console.log('tree[0].u = ' + tree.u);
         return ((k * Math.floor(Math.sqrt(tree.u))) + kk);
     }
 
+    // initially create the tree
+    // tree: ref to tree
     const initializeTree = async (tree) => {
         
         var sum = {name:4, u:4, faux:2, min:'16', max:'-1',count:0, summary:[], children:[]};
@@ -125,6 +151,8 @@ const VanEmdeTree = forwardRef((props, ref) => {
     }
 
     //function to improve runtime by taking out name updates
+    // root: root of tree
+    // newKey: key to insert
     const insertSummary = async (root, newKey) => {
         newKey = parseInt(newKey);
 
@@ -326,6 +354,9 @@ const VanEmdeTree = forwardRef((props, ref) => {
     }
 
     //took out animations to improve runtime
+    // remove summary 
+    // v: tree
+    // key: key to delete (summary)
     const removeSummary = async (v, key) => {
         
         if(v.min > v.max) {
@@ -409,6 +440,8 @@ const VanEmdeTree = forwardRef((props, ref) => {
     }
 
     //another function so different roots can be passed in
+    // v: tree ref
+    // key: key to remove
     const removeRecursive = async (v, key) => {
 
         var tree = vanEmdeTree;
@@ -500,7 +533,8 @@ const VanEmdeTree = forwardRef((props, ref) => {
         setVanEmdeTree([...tree]);
     }
     
-    
+    // remove key of tree
+    // key: key to remove
     const removeKey = async (key) => {
 
         key = parseInt(key);
@@ -595,6 +629,9 @@ const VanEmdeTree = forwardRef((props, ref) => {
         setVanEmdeTree([...tree]);
     }
 
+    // recursive find function
+    // v: tree ref
+    // key: key to find
     const findRecursive = async (v, key) => {
         key = parseInt(key);
         
@@ -638,7 +675,8 @@ const VanEmdeTree = forwardRef((props, ref) => {
 
     }
     
-    
+    // find funciton
+    // key: key to find
     const findKey = async (key) => {
         key = parseInt(key);
         

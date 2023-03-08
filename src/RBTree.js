@@ -74,6 +74,7 @@ const RBTree = forwardRef((props, ref) => {
     // MARK: Search
 
     // exposed search function
+    // key: key we are searching for
     const findKey = async (key) => {
         key = parseInt(key); // make sure int
         var tree = RBTree; // set tree
@@ -84,6 +85,9 @@ const RBTree = forwardRef((props, ref) => {
     }
 
     // recursive search helper function
+    // tree: tree to pass through
+    // node: cur node checking
+    // key: key we look for
     const treeSearch = async (tree, node, key) => {
         if(node.name === nullNode) { // did not find node
             await animateNodeColor(tree, node, 'red'); // flash red
@@ -107,6 +111,7 @@ const RBTree = forwardRef((props, ref) => {
     // MARK: Insert
 
     // exposed insert function
+    // value: value we are inserting
     const insertNode = async (value) => {
         var tree = RBTree; // set tree
         // create a new node to insert
@@ -152,6 +157,8 @@ const RBTree = forwardRef((props, ref) => {
     // MARK: helper functions for RB tree insert
 
     // after a node is inserted, makes tree balenced if it needs to be
+    // tree: tree to pass through
+    // element: element we inserted
     const rbInsertFixup = async (tree, element) => {
         if (element.parent.name === nullNode) { // always make root node black
             element.color = "black";
@@ -206,6 +213,7 @@ const RBTree = forwardRef((props, ref) => {
     }
 
     // gets the grandparent of element if not null
+    // element: element to get grandparent for
     const getGrandparent = (element) => {
         if (element.parent.name === nullNode) { // if null
             return {name: nullNode}; // return null
@@ -214,6 +222,7 @@ const RBTree = forwardRef((props, ref) => {
     }
 
     // gets the uncle of element
+    // element: element to get uncle for
     const getUncle = (element) => {
         let grandparent = getGrandparent(element); // get grandparent
         if (grandparent.name === nullNode) { // if null
@@ -228,6 +237,7 @@ const RBTree = forwardRef((props, ref) => {
     // MARK: Remove
 
     // exposed remove function
+    // key: key we search for to remove
     const removeKey = async (key) => {
         key = parseInt(key); // make key int
         var tree = RBTree; // get the tree
@@ -246,6 +256,8 @@ const RBTree = forwardRef((props, ref) => {
     // MARK: helper functions for RB tree remove
 
     // recursive func to remove a node
+    // tree: tree to pass through
+    // node: cur node removing
     const removeNode = async (tree, node) => {
         if (node.children[0].name !== nullNode && node.children[1].name !== nullNode) { // if children is not null
             let predecessorNode = await getPredecessor(tree, node); // get our predecessor to replace this node
@@ -270,6 +282,8 @@ const RBTree = forwardRef((props, ref) => {
     }
 
     // remove a given node
+    // tree: tree to pass through
+    // node: cur node checking
     const BSTRemove = async (tree, node) => {
         if (node.name === nullNode) { // if null
             return; // return
@@ -321,6 +335,8 @@ const RBTree = forwardRef((props, ref) => {
     }
 
     // use when deleting a node, prepare a node for removal, go though different cases
+    // tree: tree to pass through
+    // node: cur node checking
     const prepareForRemoval = async (tree, node) => {
         if (tryCase1(node)) { // case 1
             return;
@@ -362,6 +378,7 @@ const RBTree = forwardRef((props, ref) => {
     }
 
     // node is red and is root
+    // node: cur node checking
     const tryCase1 = (node) => {
         if (node.color === "red" || node.parent.name === nullNode) {
             return true;
@@ -370,6 +387,9 @@ const RBTree = forwardRef((props, ref) => {
     }
 
     // sibbling is red
+    // tree: tree to pass through
+    // node: cur node checking
+    // sibling: sibling of the node
     const tryCase2 = async (tree, node, sibling) => {
         if (sibling.color === "red") {
             // recolor
@@ -387,6 +407,9 @@ const RBTree = forwardRef((props, ref) => {
     }
 
     // parent is black and both of sibling children black
+    // tree: tree to pass through
+    // node: cur node checking
+    // sibling: sibling of the node
     const tryCase3 = async (tree, node, sibling) => {
         if (node.parent.color === "black" && areBothChildrenBlack(sibling)) {
             sibling.color = "red"; // recolor
@@ -397,6 +420,8 @@ const RBTree = forwardRef((props, ref) => {
     }
 
     // parent is red and both sibling childrent black
+    // node: cur node checking
+    // sibling: sibling of the node
     const tryCase4 = (node, sibling) => { 
         if (node.parent.color === "red" && areBothChildrenBlack(sibling)) {
             // just recolor
@@ -408,6 +433,9 @@ const RBTree = forwardRef((props, ref) => {
     }
 
     // if children or sibling are of a special case
+    // tree: tree to pass through
+    // node: cur node checking
+    // sibling: sibling of the node
     const tryCase5 = async (tree, node, sibling) => {
         if (isNotNoneAndRed(sibling.children[0])) {
             if (isNoneOrBlack(sibling.children[1])) {
@@ -424,6 +452,9 @@ const RBTree = forwardRef((props, ref) => {
     }
 
     // if children or sibling are of a special case
+    // tree: tree to pass through
+    // node: cur node checking
+    // sibling: sibling of the node
     const tryCase6 = async (tree, node, sibling) => {
         if (isNoneOrBlack(sibling.children[0])) {
             if (isNotNoneAndRed(sibling.children[1])) {
@@ -440,6 +471,10 @@ const RBTree = forwardRef((props, ref) => {
     }
 
     // helper to replace a child with a new child
+    // tree: pass through tree structure
+    // node: node to replace children
+    // curChild: cur child of node
+    // newChild: new child to replace old
     const replaceChild = async (tree, node, curChild, newChild) => {
         if (node.children[0].name === curChild.name) { // if left child
             node.children[0] = newChild; // set left child
@@ -455,6 +490,7 @@ const RBTree = forwardRef((props, ref) => {
     }
 
     // helper to return if a node is not none and red
+    // node: node to find not none and red
     const isNotNoneAndRed = (node) => {
         if (node.name === nullNode) {
             return false;
@@ -466,6 +502,7 @@ const RBTree = forwardRef((props, ref) => {
     }
 
     // helper to return if a node is none or black
+    // node: node to to find if it is none or black
     const isNoneOrBlack = (node) => {
         if (node.name === nullNode) {
             return true;
@@ -477,6 +514,7 @@ const RBTree = forwardRef((props, ref) => {
     }
 
     // helper to return if both children are black
+    // node: node to find if both children black
     const areBothChildrenBlack = (node) => {
         if (node.name == nullNode) { // not null
             return false;
@@ -491,6 +529,7 @@ const RBTree = forwardRef((props, ref) => {
     }
 
     // helper to get the sibbling og a node
+    // node: node to get sibling for
     const getSibling = (node) => {
         if (node.parent.name !== nullNode) { // check not root node ( has a parent)
             if (node.name === node.parent.children[0].name) { // if left
@@ -502,6 +541,8 @@ const RBTree = forwardRef((props, ref) => {
     }
 
     // helper to get predecessor of a node
+    // tree: pass through tree ref
+    // node: node to get pred for
     const getPredecessor = async (tree, node) => {
         let curNode = node.children[0]; // init
         while (curNode.children[1].name !== nullNode) { // keep going right if not null
@@ -517,6 +558,7 @@ const RBTree = forwardRef((props, ref) => {
     // MARK: Common helper functions
 
     // print tree (pass in head of tree tree[0])
+    // node: node to print
     const printNode = (node) => {
         if (node.name !== nullNode) {
             console.log(node); // print the node
@@ -527,6 +569,8 @@ const RBTree = forwardRef((props, ref) => {
     }
 
     // left rotation on element
+    // tree: pass through tree ref
+    // element: element want to rotate
     const leftRotate = async (tree, element) => {
         await animateNodeColors(tree, [element, element.children[1]], ["plum", "PaleTurquoise"]); // show what is considered in roatation
         let temp = element.children[1]; // set temp
@@ -548,6 +592,8 @@ const RBTree = forwardRef((props, ref) => {
     }
 
     // right rotation on element
+    // tree: pass through tree ref
+    // element: element want to rotate
     const rightRotate = async (tree, element) => {
         await animateNodeColors(tree, [element, element.children[0]], ["PaleTurquoise", "plum"]); // show what is considered in roatation
         let temp = element.children[0]; // set temp
