@@ -1,5 +1,7 @@
 # CS470_project02
 
+![image](https://user-images.githubusercontent.com/60998598/235253344-3683dfd0-0b86-4fc3-a841-c387f567fbb4.png)
+
 ## Description:
 In this project we created animations for [B-Tree](https://www.geeksforgeeks.org/introduction-of-b-tree-2/), [Red-Black Tree](https://www.geeksforgeeks.org/introduction-to-red-black-tree/), and [Van Emde Boas Tree](https://www.geeksforgeeks.org/van-emde-boas-tree-set-1-basics-and-construction/). The project uses [react](https://reactjs.org/docs/getting-started.html) as the web framework and uses a react component called [react-d3-tree](https://www.npmjs.com/package/react-d3-tree) for animating the tree data structures.
 
